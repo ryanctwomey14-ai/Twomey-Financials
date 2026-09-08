@@ -417,39 +417,6 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
 .promo-note b{color:var(--t0);font-weight:600}
 </style>
 <style>
-/* ================= NUDGE CARDS ================= */
-.nudges{display:grid;gap:12px}
-@media (min-width:820px){.nudges{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (min-width:1320px){.nudges{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.nudge{
-  position:relative;display:flex;gap:12px;padding:14px;border-radius:12px;overflow:hidden;
-  border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.014));
-  backdrop-filter:blur(14px);box-shadow:var(--shadow);
-  transition:opacity .18s var(--ease-out),transform .18s var(--ease-out),border-color .18s var(--ease-out);
-}
-.nudge.crit{border-color:rgba(242,118,107,.34)}
-.nudge.crit::before{content:"";position:absolute;inset:0;background:radial-gradient(320px 120px at 0% 0%,rgba(242,118,107,.11),transparent 70%);pointer-events:none}
-.nudge.leak{border-color:rgba(212,175,97,.3)}
-.nudge.leak::before{content:"";position:absolute;inset:0;background:radial-gradient(320px 120px at 0% 0%,rgba(212,175,97,.1),transparent 70%);pointer-events:none}
-.nudge.win{border-color:rgba(61,214,140,.3)}
-.nudge.win::before{content:"";position:absolute;inset:0;background:radial-gradient(320px 120px at 0% 0%,rgba(61,214,140,.09),transparent 70%);pointer-events:none}
-.nudge.out{opacity:0;transform:translateY(-6px)}
-.nudge-ic{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;
-  border:1px solid var(--line);background:rgba(255,255,255,.05);position:relative;z-index:1}
-.nudge-ic svg{width:17px;height:17px}
-.nudge.crit .nudge-ic{color:var(--rose);border-color:rgba(242,118,107,.34);background:var(--rose-wash)}
-.nudge.leak .nudge-ic{color:var(--gold);border-color:rgba(212,175,97,.32);background:rgba(212,175,97,.1)}
-.nudge.win .nudge-ic{color:var(--em);border-color:rgba(61,214,140,.3);background:var(--em-wash)}
-.nudge-tx{min-width:0;flex:1;display:flex;flex-direction:column;gap:6px;position:relative;z-index:1}
-.nudge-tx h4{font-size:13px;font-weight:600;letter-spacing:-.008em}
-.nudge-tx p{font-size:11.5px;color:var(--t1);line-height:1.5}
-.nudge-tx p b{color:var(--t0);font-weight:600;font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
-.nudge-act{display:flex;align-items:center;gap:8px;margin-top:2px;flex-wrap:wrap}
-.nudge-x{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:6px;display:grid;place-items:center;
-  color:var(--t3);z-index:2;transition:color .14s var(--ease-out),background-color .14s var(--ease-out)}
-.nudge-x svg{width:13px;height:13px}
-.nudge-x:hover{color:var(--t0);background:rgba(255,255,255,.07)}
-
 /* ================= MODAL ================= */
 .scrim{
   position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:18px;
@@ -554,6 +521,82 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
 .foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:4px 2px 8px;font-size:10.5px;color:var(--t3)}
 .foot .wm{font-family:"Bodoni Moda",Georgia,serif;font-size:13px;color:var(--t2);letter-spacing:.02em}
 
+/* ================= EDITABLE CONTROLS ================= */
+#banner{display:flex;align-items:center;gap:10px;padding:9px clamp(14px,2.4vw,26px);
+  font-size:11.5px;line-height:1.5;border-bottom:1px solid var(--line-2);background:rgba(255,255,255,.03);color:var(--t1)}
+#banner[hidden]{display:none}
+#banner svg{width:14px;height:14px;flex:none}
+#banner b{color:var(--t0);font-weight:600}
+#banner.live{background:var(--em-wash);border-bottom-color:rgba(61,214,140,.24)}
+#banner.live svg{color:var(--em)}
+#banner.warn{background:rgba(212,175,97,.09);border-bottom-color:rgba(212,175,97,.28)}
+#banner.warn svg{color:var(--gold)}
+#banner.demo svg{color:var(--t2)}
+#banner .bsp{flex:1}
+#banner button+button{margin-left:6px}
+
+input[type=date],input[type=number],input[type=text],select{font:inherit;font-size:12px;
+  font-family:"JetBrains Mono",monospace;color:var(--t0);background:rgba(0,0,0,.32);
+  border:1px solid var(--line);border-radius:7px;padding:6px 8px;min-width:0;color-scheme:dark}
+input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+
+.promo-edit{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:9px;margin-top:2px;border-top:1px solid var(--line-2)}
+.promo-edit .lbl{flex:none}
+.promo-edit input[type=date]{flex:1;min-width:130px}
+
+.acct-act{flex:none;margin-left:2px}
+.acct-del,.txn-del{width:26px;height:26px;flex:none;opacity:0;transition:opacity .14s var(--ease-out)}
+.acct-del svg,.txn-del svg{width:12px;height:12px}
+.acct:hover .acct-del,.txn:hover .txn-del,.acct-del:focus-visible,.txn-del:focus-visible{opacity:1}
+@media (hover:none){.acct-del,.txn-del{opacity:.6}}
+
+.bud-edit{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line-2)}
+.bud-edit b{flex:1;min-width:0;font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bud-edit .bud-actual{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--t3);white-space:nowrap}
+.bud-edit input[type=number]{width:92px;text-align:right}
+.bud-add{display:flex;align-items:center;gap:8px;padding-top:12px;margin-top:4px;border-top:1px solid var(--line)}
+.bud-add input[type=text]{flex:1}
+.bud-add input[type=number]{width:92px;text-align:right}
+
+.txn-cat{font-size:10.5px;max-width:126px;flex:none;cursor:pointer;padding:3px 5px;
+  border-color:var(--line-2);color:var(--t1);transition:border-color .15s var(--ease-out),color .15s var(--ease-out)}
+.txn-cat:hover{border-color:rgba(212,175,97,.4);color:var(--t0)}
+.txn-cat.edited{border-color:rgba(212,175,97,.45);color:var(--gold)}
+
+.fgrid{display:grid;gap:9px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:560px){.fgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--t3)}
+.field input,.field select{width:100%}
+.hold{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid var(--line-2)}
+.hold:last-of-type{border-bottom:0}
+.hold-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.hold-tx b{font-size:12.5px;font-weight:600}
+.hold-meta{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--t2);line-height:1.5}
+.hold-v{text-align:right;flex:none;font-family:"JetBrains Mono",monospace}
+.hold-v b{display:block;font-size:13px;font-weight:600;letter-spacing:-.02em}
+.hold-v span{display:block;font-size:10px;color:var(--t3);margin-top:2px}
+.hold-x{flex:none}
+.empty{padding:18px 4px;font-size:11.5px;color:var(--t3);line-height:1.55}
+summary{list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+ ";color:var(--gold)}
+details[open] summary::before{content:"\2212 "}
+
+.goal-band{display:flex;flex-direction:column;gap:9px;padding:13px;border-radius:12px;
+  border:1px solid rgba(212,175,97,.26);background:linear-gradient(180deg,rgba(212,175,97,.09),rgba(212,175,97,.02))}
+.goal-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.goal-top b{font-family:"JetBrains Mono",monospace;font-size:20px;font-weight:600;letter-spacing:-.03em}
+.goal-top span{font-size:11.5px;color:var(--t2)}
+.goal-bar{position:relative;height:7px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.goal-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;
+  background:linear-gradient(90deg,var(--gold-dim),var(--gold));transition:width .6s var(--ease-out)}
+.goal-bar i.done{background:linear-gradient(90deg,var(--em-dim),var(--em))}
+.goal-split{display:flex;gap:14px;flex-wrap:wrap;font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--t3)}
+.goal-split u{text-decoration:none;color:var(--t1)}
+
 /* ================= ENTRANCE (load only, staggered) ================= */
 .rise{opacity:0;transform:translateY(10px);animation:rise .42s var(--ease-out) forwards}
 @keyframes rise{to{opacity:1;transform:translateY(0)}}
@@ -604,7 +647,8 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
   <button class="rail-btn" data-go="accounts"><svg><use href="#i-wallet"/></svg><span class="rail-tip">Accounts</span><span class="sr">Accounts</span></button>
   <button class="rail-btn" data-go="leaks"><svg><use href="#i-scissors"/></svg><span class="rail-tip">Money leaks</span><span class="sr">Money leaks</span></button>
   <button class="rail-btn" data-go="projection"><svg><use href="#i-trend"/></svg><span class="rail-tip">Projections</span><span class="sr">Projections</span></button>
-  <button class="rail-btn" data-go="debt"><svg><use href="#i-route"/></svg><span class="rail-tip">Debt routing</span><span class="sr">Debt routing</span></button>
+  <button class="rail-btn" data-go="holdings"><svg><use href="#i-bank"/></svg><span class="rail-tip">Holdings</span><span class="sr">Holdings</span></button>
+  <button class="rail-btn" data-go="promos"><svg><use href="#i-clock"/></svg><span class="rail-tip">0% promo clocks</span><span class="sr">0% promo clocks</span></button>
   <button class="rail-btn" data-go="security"><svg><use href="#i-shield"/></svg><span class="rail-tip">Security</span><span class="sr">Security</span></button>
   <div class="rail-sp"></div>
   <button class="rail-btn" data-go="security"><svg><use href="#i-gear"/></svg><span class="rail-tip">Settings</span><span class="sr">Settings</span></button>
@@ -640,16 +684,8 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
   <div class="hero-grid">
     <div>
       <div class="status-line">
-        <span class="chip em"><span class="dot"></span>On track</span>
-        <span class="chip">Sept 2026 &middot; day 8 of 30</span>
-        <span class="chip gold"><svg><use href="#i-trophy"/></svg>Best month in 14</span>
+        <span class="chip" id="asOfChip"><span class="dot"></span>&mdash;</span>
       </div>
-
-      <p class="hero-say" id="heroSay">
-        You are <b>two years ahead</b> of your $3.2M target and your emergency fund cleared six months in June.
-        Two things want attention: <span class="up">$134/mo</span> is leaking through subscriptions you have stopped using,
-        and a <b>0% promo ends in 83 days</b> with $5,340 still on it.
-      </p>
 
       <h1 id="nwLabel" class="sr">Net worth</h1>
       <div class="nw-wrap">
@@ -710,58 +746,7 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
     </div>
   </div>
 
-  <div class="trust-strip">
-    <svg><use href="#i-lock"/></svg><b>AES-256 at rest, TLS 1.3 in transit</b>
-    <span class="sep"></span><svg><use href="#i-shield"/></svg><b>Read-only tokens</b> &mdash; Meridian cannot move money
-    <span class="sep"></span><svg><use href="#i-check"/></svg><b>SOC 2 Type II</b>
-    <span class="sep"></span><svg><use href="#i-eye-off"/></svg>Credentials never touch our servers
-  </div>
 </section>
-<!-- ============ ADVISORY NUDGES ============ -->
-<section class="rise" style="animation-delay:.08s" aria-label="Advisory alerts">
-  <div class="nudges" id="nudges">
-
-    <article class="nudge crit" data-id="n1">
-      <button class="nudge-x" data-dismiss title="Dismiss"><svg><use href="#i-x"/></svg><span class="sr">Dismiss</span></button>
-      <span class="nudge-ic"><svg><use href="#i-alert"/></svg></span>
-      <div class="nudge-tx">
-        <h4>Reflect promo expires before you clear it</h4>
-        <p>At the routed <b>$1,008/mo</b> you land on 30 Nov with <b>$2,316</b> still owing, and 24.99% starts that day. Clearing it outright needs <b>$1,780/mo</b>. The cheaper move is to pay the residual from Ally on expiry day &mdash; <b>$95/yr</b> of forgone 4.10% yield against <b>$579/yr</b> of interest.</p>
-        <div class="nudge-act">
-          <button class="btn sm gold" data-act="debt">Open debt routing</button>
-          <button class="btn sm" data-snooze>Remind me 1 Nov</button>
-        </div>
-      </div>
-    </article>
-
-    <article class="nudge leak" data-id="n2">
-      <button class="nudge-x" data-dismiss title="Dismiss"><svg><use href="#i-x"/></svg><span class="sr">Dismiss</span></button>
-      <span class="nudge-ic"><svg><use href="#i-scissors"/></svg></span>
-      <div class="nudge-tx">
-        <h4>Dining is running at 292% of pace</h4>
-        <p>Day 8 of 30 and <b>$312</b> of a <b>$400</b> budget is gone. Holding the current rate lands the month at <b>$1,170</b> &mdash; which is <b>$770</b> that was headed for the brokerage.</p>
-        <div class="nudge-act">
-          <button class="btn sm" data-act="leaks">See the 11 charges</button>
-          <button class="btn sm" data-snooze>Raise budget to $600</button>
-        </div>
-      </div>
-    </article>
-
-    <article class="nudge win" data-id="n3">
-      <button class="nudge-x" data-dismiss title="Dismiss"><svg><use href="#i-x"/></svg><span class="sr">Dismiss</span></button>
-      <span class="nudge-ic"><svg><use href="#i-trophy"/></svg></span>
-      <div class="nudge-tx">
-        <h4>Runway cleared six months &mdash; floor met</h4>
-        <p>The emergency fund hit <b>7.4 months</b> in June and has stayed there. Everything above the six-month floor &mdash; <b>$12,400</b> &mdash; can now go to work instead of sitting at 4.1%.</p>
-        <div class="nudge-act">
-          <button class="btn sm gold" data-act="sweep">Set up the sweep</button>
-        </div>
-      </div>
-    </article>
-
-  </div>
-</section>
-
 <!-- ============ NET WORTH + ACCOUNT HUB ============ -->
 <section class="row r-7-5 rise" style="animation-delay:.14s" id="accounts">
 
@@ -811,6 +796,7 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
     <div class="rule"></div>
     <div style="display:flex;align-items:center;gap:8px">
       <span class="lbl" style="flex:1">Group total</span>
+      <span id="acctHidden"></span>
       <span class="num" id="acctTotal" style="font-size:15px;font-weight:600;letter-spacing:-.03em">&mdash;</span>
     </div>
   </div>
@@ -821,18 +807,21 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
 
   <div class="card">
     <div class="ch">
-      <div><h3>Budget versus actual</h3><p class="sub">Day 8 of 30 &mdash; the marker is where a category should be if spending were even</p></div>
+      <div><h3>Budget versus actual</h3><p class="sub" id="budgetSub">Day 8 of 30</p></div>
       <div class="ch-sp"></div>
-      <span class="chip"><svg><use href="#i-clock"/></svg>26.7% through</span>
+      <span class="chip" id="budgetThru"><svg><use href="#i-clock"/></svg>&mdash;</span>
+      <button class="btn sm" id="budgetEdit">Edit</button>
     </div>
     <div id="budgetList"></div>
     <div class="rule"></div>
     <div class="stat-grid" id="budgetStats" style="grid-template-columns:repeat(auto-fit,minmax(128px,1fr))"></div>
   </div>
 
-  <div class="card tight">
+  <div class="card tight" id="promos">
     <div class="ch">
       <div><h3>0% APR promo clocks</h3><p class="sub">Time-boxed debt, tracked to the day</p></div>
+      <div class="ch-sp"></div>
+      <span class="chip" id="promoTotal">&mdash;</span>
     </div>
 
     <div id="promoClocks"></div>
@@ -844,6 +833,103 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
   </div>
 </section>
 <!-- ============ PROJECTION SUITE &mdash; SIGNATURE ============ -->
+<!-- ============ ILLIQUID HOLDINGS ============ -->
+<section class="rise" style="animation-delay:.23s" id="holdings">
+  <div class="sec-head" style="margin-bottom:12px">
+    <div><h2>Holdings</h2></div>
+    <div class="sec-sp"></div>
+    <span class="chip gold" id="altsChip">&mdash;</span>
+    <span class="chip" id="equityChip">&mdash;</span>
+  </div>
+
+  <div class="row r-7-5">
+    <div class="card tight">
+      <div class="ch"><div><h3>Real estate positions</h3><p class="sub">GP sponsorship and LP interests</p></div></div>
+      <div id="reList"></div>
+      <div class="rule"></div>
+      <details><summary class="lbl" style="cursor:pointer;padding:4px 0">Add a position</summary>
+        <div class="fgrid" style="margin-top:11px">
+          <div class="field"><label for="reKind">Role</label>
+            <select id="reKind"><option value="lp">LP &mdash; passive</option><option value="gp">GP &mdash; sponsor</option></select></div>
+          <div class="field" style="grid-column:span 2"><label for="reName">Deal name</label><input id="reName" type="text" placeholder="Riverside Apartments"></div>
+          <div class="field"><label for="reInvested">Capital in</label><input id="reInvested" type="number" min="0" step="1000" placeholder="100000"></div>
+          <div class="field"><label for="reEntry">Entry date</label><input id="reEntry" type="date"></div>
+          <div class="field"><label for="reMark">Current mark</label><input id="reMark" type="number" min="0" step="1000" placeholder="blank = estimate"></div>
+          <div class="field"><label for="reDist">Distributions</label><input id="reDist" type="number" min="0" step="500" placeholder="0"></div>
+          <div class="field"><label for="reMult">Exit multiple</label><input id="reMult" type="number" min="0" step="0.05" placeholder="2.0"></div>
+          <div class="field"><label for="reExit">Exit date</label><input id="reExit" type="date"></div>
+          <div class="field"><label for="rePref">Pref %</label><input id="rePref" type="number" min="0" step="0.5" placeholder="8"></div>
+          <div class="field" id="rePromoteWrap" hidden><label for="rePromote">Promote %</label><input id="rePromote" type="number" min="0" step="1" placeholder="20"></div>
+          <div class="field" style="justify-content:flex-end"><button class="btn sm gold" id="reAdd"><svg><use href="#i-plus"/></svg>Add position</button></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="card tight">
+      <div class="ch"><div><h3>Property</h3><p class="sub">Home value against its mortgage</p></div></div>
+      <div id="propList"></div>
+      <div class="rule"></div>
+      <details><summary class="lbl" style="cursor:pointer;padding:4px 0">Add a property</summary>
+        <div class="fgrid" style="margin-top:11px;grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div class="field" style="grid-column:1/-1"><label for="pName">Name</label><input id="pName" type="text" placeholder="Primary home"></div>
+          <div class="field"><label for="pValue">Value</label><input id="pValue" type="number" min="0" step="5000" placeholder="750000"></div>
+          <div class="field"><label for="pAppr">Appreciation %</label><input id="pAppr" type="number" step="0.1" placeholder="3.0"></div>
+          <div class="field" style="grid-column:1/-1"><label for="pLink">Mortgage</label>
+            <select id="pLink"><option value="">Enter manually below</option></select></div>
+          <div class="field"><label for="pBal">Balance</label><input id="pBal" type="number" min="0" step="1000" placeholder="480000"></div>
+          <div class="field"><label for="pRate">Rate %</label><input id="pRate" type="number" min="0" step="0.05" placeholder="6.25"></div>
+          <div class="field"><label for="pPay">Monthly payment</label><input id="pPay" type="number" min="0" step="50" placeholder="3200"></div>
+          <div class="field" style="justify-content:flex-end"><button class="btn sm gold" id="pAdd"><svg><use href="#i-plus"/></svg>Add property</button></div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="row r-7-5" style="margin-top:12px">
+    <div class="card tight">
+      <div class="ch"><div><h3>Promissory notes</h3><p class="sub">Private lending where you are the lender</p></div>
+        <div class="ch-sp"></div><span class="chip" id="notesChip">&mdash;</span></div>
+      <div id="noteList"></div>
+      <div class="rule"></div>
+      <details><summary class="lbl" style="cursor:pointer;padding:4px 0">Add a note</summary>
+        <div class="fgrid" style="margin-top:11px">
+          <div class="field" style="grid-column:span 2"><label for="nName">Note</label><input id="nName" type="text" placeholder="Oakwood bridge loan"></div>
+          <div class="field"><label for="nBorrower">Borrower</label><input id="nBorrower" type="text" placeholder="optional"></div>
+          <div class="field"><label for="nPrincipal">Principal</label><input id="nPrincipal" type="number" min="0" step="1000" placeholder="50000"></div>
+          <div class="field"><label for="nRate">Rate %</label><input id="nRate" type="number" min="0" step="0.25" placeholder="11"></div>
+          <div class="field"><label for="nStructure">Interest</label>
+            <select id="nStructure"><option value="interest-only">Paid monthly</option><option value="accrued">Accrues (PIK)</option><option value="amortizing">Amortising</option></select></div>
+          <div class="field"><label for="nStart">Start date</label><input id="nStart" type="date"></div>
+          <div class="field"><label for="nMaturity">Maturity</label><input id="nMaturity" type="date"></div>
+          <div class="field" style="justify-content:flex-end"><button class="btn sm gold" id="nAdd"><svg><use href="#i-plus"/></svg>Add note</button></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="card tight">
+      <div class="ch"><div><h3>Crypto</h3><p class="sub">Live prices &mdash; you keep the quantities</p></div>
+        <div class="ch-sp"></div>
+        <button class="btn sm" id="cryptoRefresh"><svg><use href="#i-refresh"/></svg>Refresh</button>
+        <span class="chip" id="cryptoChip">&mdash;</span></div>
+      <div id="cryptoList"></div>
+      <div class="rule"></div>
+      <details><summary class="lbl" style="cursor:pointer;padding:4px 0">Add a holding</summary>
+        <div class="fgrid" style="margin-top:11px;grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div class="field"><label for="cSymbol">Symbol</label><input id="cSymbol" type="text" placeholder="BTC"></div>
+          <div class="field"><label for="cName">Name</label><input id="cName" type="text" placeholder="Bitcoin"></div>
+          <div class="field"><label for="cQty">Quantity</label><input id="cQty" type="number" min="0" step="0.00000001" placeholder="0.75"></div>
+          <div class="field"><label for="cBasis">Cost basis</label><input id="cBasis" type="number" min="0" step="100" placeholder="32000"></div>
+          <div class="field"><label for="cGrowth">Assumed growth %</label><input id="cGrowth" type="number" step="1" placeholder="0"></div>
+          <div class="field" style="justify-content:flex-end"><button class="btn sm gold" id="cAdd"><svg><use href="#i-plus"/></svg>Add holding</button></div>
+        </div>
+        <p class="sub" style="font-size:10.5px;color:var(--t3);line-height:1.5;margin-top:9px">
+          Price comes from the feed, so only the quantity is yours to maintain. If an exchange is already
+          linked through Plaid it arrives as an investment account &mdash; adding it here too would count it twice.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
 <section class="rise" style="animation-delay:.26s" id="projection">
   <div class="sec-head" style="margin-bottom:12px">
     <div>
@@ -855,6 +941,7 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
   </div>
 
   <div class="card">
+    <div class="goal-band" id="goalBand"></div>
     <div class="row" style="grid-template-columns:1fr">
       <div class="row" id="projRow" style="gap:18px">
 
@@ -980,48 +1067,6 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
   </div>
 </section>
 <!-- ============ DEBT ROUTING ============ -->
-<section class="rise" style="animation-delay:.38s" id="debt">
-  <div class="sec-head" style="margin-bottom:12px">
-    <div>
-      <h2>Debt routing</h2>
-      <p>Every strategy pays the same minimums. The only question is where the extra $954 goes each month &mdash; and promo deadlines outrank interest rates.</p>
-    </div>
-    <div class="sec-sp"></div>
-    <div class="seg g" id="stratTabs" role="group" aria-label="Payoff strategy">
-      <button aria-pressed="true" data-st="deadline">Deadline-aware</button>
-      <button aria-pressed="false" data-st="avalanche">Avalanche</button>
-      <button aria-pressed="false" data-st="snowball">Snowball</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="row r-8-4" style="gap:16px">
-      <div style="min-width:0;display:flex;flex-direction:column;gap:12px">
-        <div class="ctrl" style="max-width:340px">
-          <div class="ctrl-top"><span class="lbl">Extra per month</span><span class="ctrl-val" id="vExtra">$954</span></div>
-          <input type="range" id="sExtra" min="0" max="3000" step="1" value="954" aria-label="Extra monthly payment">
-        </div>
-        <div class="tw">
-          <table>
-            <thead><tr><th class="n" style="text-align:left;width:34px">#</th><th>Obligation</th><th class="n">Balance</th><th class="n">APR</th><th class="n">Cleared</th><th class="n">Interest</th></tr></thead>
-            <tbody id="debtBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="stat-grid" style="grid-template-columns:1fr 1fr">
-          <div class="stat"><span class="lbl">Debt-free</span><b class="goldt" id="dFree">&mdash;</b><span id="dFreeSub">&mdash;</span></div>
-          <div class="stat"><span class="lbl">Total interest</span><b class="loss" id="dInt">&mdash;</b><span id="dIntSub">&mdash;</span></div>
-          <div class="stat"><span class="lbl">Promo exposure</span><b id="dExp">&mdash;</b><span>Balance left when a 0% window closes</span></div>
-          <div class="stat"><span class="lbl">First win</span><b id="dFirst">&mdash;</b><span id="dFirstSub">&mdash;</span></div>
-        </div>
-        <div class="note" id="stratNote"><svg><use href="#i-check"/></svg><div id="stratNoteTx">&mdash;</div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ============ SECURITY & DATA ============ -->
 <section class="rise" style="animation-delay:.44s" id="security">
   <div class="sec-head" style="margin-bottom:12px">
@@ -1398,7 +1443,8 @@ $("#nwRange").addEventListener("click", e => {
 
 /* ================= ACCOUNT HUB ================= */
 function renderAccounts(tab){
-  const list = ACCOUNTS[tab];
+  const list = ACCOUNTS[tab] || [];
+  const canFlag = LIVE && (tab === "credit" || tab === "promo");
   $("#acctList").innerHTML = list.map(a => `
     <div class="acct">
       <span class="inst"${a.crit?' style="border-color:rgba(242,118,107,.4);color:var(--rose)"':a.vio?' style="border-color:rgba(155,138,240,.4);color:var(--vio)"':""}>${a.mark}</span>
@@ -1407,12 +1453,49 @@ function renderAccounts(tab){
         <b style="color:${a.v<0?"var(--rose)":"var(--t0)"}">${usd(a.v)}</b>
         <span${a.crit?' style="color:var(--rose)"':a.vio?' style="color:var(--vio)"':""}>${a.sub}</span>
       </span>
+      ${LIVE && !String(a.id).startsWith("manual:") ? `<button class="icon-btn acct-del" data-acct-hide="${a.id}" title="Remove ${a.name} from Meridian"><svg><use href="#i-x"/></svg><span class="sr">Remove ${a.name}</span></button>` : ""}
+      ${canFlag && !String(a.id).startsWith("manual:") ? `<button class="btn sm acct-act" data-promo-set="${a.id}" data-on="${tab === "promo" ? 1 : 0}"
+         title="${tab === "promo" ? "This card is not actually on a 0% promotion" : "Plaid did not report a 0% rate on this card, but it is on one"}"
+        >${tab === "promo" ? "Not 0%" : "Mark 0%"}</button>` : ""}
     </div>`).join("");
   const total = list.reduce((s,a)=>s+a.v,0);
   const el = $("#acctTotal");
   el.textContent = usd(total);
   el.style.color = total<0 ? "var(--rose)" : "var(--t0)";
+  const hid = $("#acctHidden");
+  if (hid) hid.innerHTML = HIDDEN_ACCOUNTS.length ? `<button class="btn sm" id="showHidden">${HIDDEN_ACCOUNTS.length} hidden</button>` : "";
 }
+
+/* A Plaid account cannot be deleted -- the next sync returns it -- so it is
+   suppressed by id and can be restored. Its transactions go with it. */
+document.addEventListener("click", async e => {
+  const hide = e.target.closest("[data-acct-hide]");
+  if (hide){
+    const id = hide.dataset.acctHide;
+    hide.disabled = true;
+    try {
+      await api(`/api/accounts/${encodeURIComponent(id)}`, { method:"DELETE" });
+      await refresh();
+      banner("warn", "<b>Account removed.</b> It stays hidden through future syncs, and its transactions come out of the budget with it.",
+        `<button class="btn sm" data-acct-restore="${id}">Undo</button>`);
+    } catch (err){ banner("warn", err.message); hide.disabled = false; }
+    return;
+  }
+  const back = e.target.closest("[data-acct-restore]");
+  if (back){
+    back.disabled = true;
+    try { await api(`/api/accounts/${encodeURIComponent(back.dataset.acctRestore)}/restore`, { method:"POST" }); await refresh(); }
+    catch (err){ banner("warn", err.message); }
+    return;
+  }
+  if (e.target.closest("#showHidden")){
+    if (HIDDEN_SHOWN){ HIDDEN_SHOWN = false; $("#banner").hidden = true; return; }
+    HIDDEN_SHOWN = true;
+    banner("warn", `<b>Hidden accounts.</b> ${HIDDEN_ACCOUNTS.map(a => a.name + " (" + usd(a.balance) + ")").join(", ")}`,
+      HIDDEN_ACCOUNTS.map(a => `<button class="btn sm" data-acct-restore="${a.id}">Restore ${a.name.split(" ")[0]}</button>`).join(""));
+  }
+});
+
 $("#acctTabs").addEventListener("click", e => {
   const b = e.target.closest("button"); if(!b) return;
   $$("#acctTabs button").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
@@ -1421,11 +1504,22 @@ $("#acctTabs").addEventListener("click", e => {
 
 /* ================= BUDGET ================= */
 function renderBudget(){
-  $("#budgetList").innerHTML = BUDGET.map(b => {
-    const ratio = b.a/b.t;
+  const sub = $("#budgetSub"), thru = $("#budgetThru"), btn = $("#budgetEdit");
+  if (sub)  sub.textContent = `Day ${DAY} of ${DAYS_IN_MONTH} \u2014 the marker is where a category should be if spending were even`;
+  if (thru) thru.innerHTML = `<svg><use href="#i-clock"/></svg>${(THRU*100).toFixed(1)}% through`;
+  if (btn)  { btn.textContent = BUDGET_EDIT ? "Done" : "Edit"; btn.classList.toggle("gold", BUDGET_EDIT); }
+
+  if (BUDGET_EDIT) renderBudgetEditor();
+  else if (!BUDGET.length) $("#budgetList").innerHTML = `<p class="empty">
+      No budget lines yet. Without targets there is nothing to measure pace against, so the leak
+      detector can only report recurring charges &mdash; not overspending.</p>
+    ${LIVE ? `<div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px">
+      <button class="btn sm gold" id="budgetFromAvg"><svg><use href="#i-zap"/></svg>Use my averages</button>
+      <button class="btn sm" id="budgetAddFirst"><svg><use href="#i-plus"/></svg>Add lines by hand</button></div>` : ""}`;
+  else $("#budgetList").innerHTML = BUDGET.map(b => {
+    const ratio = b.t ? b.a/b.t : 0;
     const paceRatio = b.fixed ? ratio : (b.t ? b.a/(b.t*THRU) : 0);
     const cls = b.fixed ? (ratio>1?"over":"ok") : paceRatio>1.5 ? "over" : paceRatio>1.05 ? "warn" : "ok";
-    const w = Math.min(100, ratio*100);
     return `<div class="bud">
       <div class="bud-top">
         <b>${b.n}</b>
@@ -1434,23 +1528,87 @@ function renderBudget(){
         <span class="bud-n">${usd(b.a)} <u>/ ${usd(b.t)}</u></span>
       </div>
       <div class="track">
-        <i class="${cls}" style="width:${w}%"></i>
+        <i class="${cls}" style="width:${Math.min(100, ratio*100)}%"></i>
         ${b.fixed?"":`<span class="pace" style="left:${(THRU*100).toFixed(1)}%"></span>`}
       </div>
     </div>`;
   }).join("");
 
-  const spent = BUDGET.reduce((s,b)=>s+b.a,0);
+  if (!BUDGET.length){ $("#budgetStats").innerHTML = ""; return; }
+  const spent  = BUDGET.reduce((s,b)=>s+b.a,0);
   const target = BUDGET.reduce((s,b)=>s+b.t,0);
-  const proj = BUDGET.reduce((s,b)=> s + (b.fixed ? b.t : b.a/THRU), 0);
-  const over = proj - target;
-  const hot = BUDGET.filter(b=>!b.fixed && b.t && b.a/(b.t*THRU) > 1.5);
+  const proj   = BUDGET.reduce((s,b)=> s + (b.fixed ? b.t : (THRU ? b.a/THRU : 0)), 0);
+  const over   = proj - target;
+  const hot    = BUDGET.filter(b=>!b.fixed && b.t && b.a/(b.t*THRU) > 1.5);
   $("#budgetStats").innerHTML = `
     <div class="stat"><span class="lbl">Spent MTD</span><b data-money="1">${usd(spent)}</b><span>of ${usd(target)} budgeted</span></div>
     <div class="stat"><span class="lbl">Projected close</span><b class="${over>0?"loss":"gain"}" data-money="1">${usd(Math.round(proj))}</b><span>${over>0?usd(Math.round(over))+" over":usd(Math.round(-over))+" under"} at current pace</span></div>
     <div class="stat"><span class="lbl">Over pace</span><b class="loss">${hot.length}</b><span>${hot.map(h=>h.n.split(" ")[0]).join(", ")||"None"}</span></div>
     <div class="stat"><span class="lbl">At risk of quota</span><b class="goldt" data-money="1">${usd(Math.round(Math.max(0,over)))}</b><span>Comes out of investing, not income</span></div>`;
 }
+
+function renderBudgetEditor(){
+  const taken = new Set(BUDGET.map(b => b.n));
+  const free  = KNOWN_CATEGORIES.filter(c => !taken.has(c));
+  $("#budgetList").innerHTML =
+    BUDGET.map(b => `
+      <div class="bud-edit">
+        <b title="${b.n}">${b.n}</b>
+        <span class="bud-actual">${usd(b.a)} spent</span>
+        <input type="number" min="0" step="25" value="${b.t}" data-budget="${encodeURIComponent(b.n)}" aria-label="Monthly target for ${b.n}">
+        <button class="icon-btn" data-budget-del="${encodeURIComponent(b.n)}" title="Remove ${b.n}"><svg><use href="#i-x"/></svg><span class="sr">Remove ${b.n}</span></button>
+      </div>`).join("")
+    + `<div class="bud-add">
+        <input type="text" list="catList" id="newCat" placeholder="Category name" aria-label="New category name" autocomplete="off">
+        <datalist id="catList">${free.map(c => `<option value="${c}"></option>`).join("")}</datalist>
+        <input type="number" id="newAmt" min="0" step="25" placeholder="0" aria-label="Monthly target">
+        <button class="btn sm gold" id="addBudget"><svg><use href="#i-plus"/></svg>Add</button>
+      </div>
+      <p class="sub" style="font-size:10.5px;color:var(--t3);line-height:1.5;margin-top:9px">
+        Spending lands in a line by category name. The suggestions are the ${KNOWN_CATEGORIES.length} categories
+        Meridian maps transactions into &mdash; a name outside that list stays at $0 spent until something matches it.</p>`;
+}
+
+$("#budgetEdit")?.addEventListener("click", () => {
+  if (!LIVE) return banner("warn", "Connect an institution before editing budget targets.");
+  BUDGET_EDIT = !BUDGET_EDIT;
+  renderBudget();
+});
+
+document.addEventListener("change", async e => {
+  const inp = e.target.closest("input[data-budget]"); if (!inp) return;
+  const name = decodeURIComponent(inp.dataset.budget);
+  const v = Number(inp.value);
+  if (!Number.isFinite(v) || v < 0) return banner("warn", `"${name}" needs a number of 0 or more.`);
+  inp.disabled = true;
+  try { await api("/api/budget", { method:"POST", body: JSON.stringify({ [name]: v }) }); await refresh(); }
+  catch (err){ banner("warn", err.message); inp.disabled = false; }
+});
+
+document.addEventListener("click", async e => {
+  const del = e.target.closest("[data-budget-del]");
+  if (del){
+    del.disabled = true;
+    try { await api(`/api/budget/${encodeURIComponent(decodeURIComponent(del.dataset.budgetDel))}`, { method:"DELETE" }); await refresh(); }
+    catch (err){ banner("warn", err.message); del.disabled = false; }
+    return;
+  }
+  if (e.target.closest("#addBudget")){
+    const cat = $("#newCat").value.trim(), amt = Number($("#newAmt").value);
+    if (!cat) return banner("warn", "Give the category a name.");
+    if (BUDGET.some(b => b.n === cat)) return banner("warn", `"${cat}" is already budgeted. Edit its amount instead.`);
+    if (!Number.isFinite(amt) || amt < 0) return banner("warn", "The monthly target needs a number of 0 or more.");
+    try { await api("/api/budget", { method:"POST", body: JSON.stringify({ [cat]: amt }) }); await refresh(); }
+    catch (err){ banner("warn", err.message); }
+    return;
+  }
+  if (e.target.closest("#budgetAddFirst")){ BUDGET_EDIT = true; renderBudget(); return; }
+  if (e.target.closest("#budgetFromAvg")){
+    e.target.closest("#budgetFromAvg").disabled = true;
+    try { await api("/api/budget/auto", { method:"POST", body: JSON.stringify({}) }); await refresh(); }
+    catch (err){ banner("warn", err.message); }
+  }
+});
 
 function renderNwStats(){
   const box = $("#nwStats"); if (!box) return;
@@ -1463,24 +1621,279 @@ function renderNwStats(){
   box.innerHTML = `
     <div class="stat"><span class="lbl">Total assets</span><b data-money="1">${usd(TOTALS.assets)}</b><span>${nAcct} account${nAcct===1?"":"s"}</span></div>
     <div class="stat"><span class="lbl">Total liabilities</span><b class="loss" data-money="1">${usd(TOTALS.liabilities)}</b><span>${nDebt} obligation${nDebt===1?"":"s"}</span></div>
-    <div class="stat"><span class="lbl">Invested</span><b data-money="1">${usd(TOTALS.invested)}</b><span>${TOTALS.assets?((TOTALS.invested/TOTALS.assets)*100).toFixed(1):"0"}% of assets</span></div>
+    <div class="stat"><span class="lbl">Market securities</span><b data-money="1">${usd(TOTALS.invested)}</b><span>${TOTALS.assets?((TOTALS.invested/TOTALS.assets)*100).toFixed(1):"0"}% of assets &middot; compounds in the projection</span></div>
+    ${ALTS_TOTAL || HOME_EQUITY ? `<div class="stat"><span class="lbl">Illiquid</span><b data-money="1">${usd(ALTS_TOTAL + HOME_EQUITY)}</b><span>${ALTS_TOTAL ? usd(ALTS_TOTAL) + " positions" : ""}${ALTS_TOTAL && HOME_EQUITY ? " &middot; " : ""}${HOME_EQUITY ? usd(HOME_EQUITY) + " home equity" : ""}</span></div>` : ""}
     <div class="stat"><span class="lbl">${span}</span><b class="${growth>=0?"gain":"loss"}">${growth>=0?"+":"\u2212"}${usd(Math.abs(Math.round(growth)))}</b><span>${growth>=0?"+":"\u2212"}${Math.abs(gpct).toFixed(1)}%</span></div>`;
 }
 
 /* ================= TRANSACTIONS ================= */
+const OFF_BUDGET = ["Income", "Transfer", "Debt payment"];
+
 function renderTxns(f){
   const rows = TXNS.filter(t => f==="all" || (f==="flag"&&t.flag) || (f==="sub"&&t.sub));
-  $("#txnList").innerHTML = rows.length ? rows.map(t => `
-    <div class="txn">
+  const cats = [...new Set([...BUDGET.map(b => b.n), ...KNOWN_CATEGORIES, ...OFF_BUDGET])];
+  $("#txnList").innerHTML = rows.length ? rows.map(t => {
+    const opts = [...new Set([...cats, t.c])]
+      .map(c => `<option value="${c}"${c === t.c ? " selected" : ""}>${c}</option>`).join("");
+    return `<div class="txn">
       <span class="txn-ic ${t.flag?"flag":""}"><svg><use href="#i-${t.flag?"alert":t.sub?"repeat":t.v>0?"up":"card"}"/></svg></span>
-      <span class="txn-tx"><b>${t.n}</b><span>${t.d} \u00b7 ${t.c} \u00b7 ${t.a}</span></span>
+      <span class="txn-tx"><b>${t.n}</b><span>${t.d} \u00b7 ${t.a}</span></span>
+      ${LIVE ? `<select class="txn-cat${t.edited?" edited":""}" data-txn-cat="${t.id}" data-merchant="${encodeURIComponent(t.merchant||"")}"
+         title="${t.edited?"You set this category":"Category from Plaid"}" aria-label="Category for ${t.n}">${opts}</select>`
+             : `<span class="txn-cat" style="cursor:default">${t.c}</span>`}
       <span class="txn-v ${t.v>0?"in":""}">${t.v>0?"+":""}${usd(t.v,2)}</span>
-    </div>`).join("") : `<p style="padding:24px 8px;text-align:center;font-size:12px;color:var(--t3)">Nothing matches that filter.</p>`;
+      ${LIVE ? `<button class="icon-btn txn-del" data-txn-del="${t.id}" title="Remove this transaction"><svg><use href="#i-x"/></svg><span class="sr">Remove ${t.n}</span></button>` : ""}
+    </div>`;
+  }).join("") : `<p style="padding:24px 8px;text-align:center;font-size:12px;color:var(--t3)">Nothing matches that filter.</p>`;
 }
-$("#txnFilter").addEventListener("click", e => {
-  const b = e.target.closest("button"); if(!b) return;
-  $$("#txnFilter button").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
-  renderTxns(b.dataset.f);
+
+/* Recategorising one transaction can also teach the rule for its merchant. */
+document.addEventListener("change", async e => {
+  const sel = e.target.closest("select[data-txn-cat]"); if (!sel) return;
+  const id = sel.dataset.txnCat, merchant = decodeURIComponent(sel.dataset.merchant || ""), category = sel.value;
+  sel.disabled = true;
+  try {
+    await api(`/api/transactions/${encodeURIComponent(id)}`, { method:"POST", body: JSON.stringify({ category, merchant }) });
+    await refresh();
+    const n = TXNS.filter(t => t.merchant === merchant).length;
+    if (merchant && n > 1){
+      banner("warn", `Moved to <b>${category}</b>. There ${n-1===1?"is":"are"} <b>${n-1}</b> other transaction${n-1===1?"":"s"} from this merchant.`,
+        `<button class="btn sm gold" data-apply-merchant="${encodeURIComponent(merchant)}" data-cat="${encodeURIComponent(category)}">Apply to all</button>`);
+    }
+  } catch (err){ banner("warn", err.message); sel.disabled = false; }
+});
+
+document.addEventListener("click", async e => {
+  const all = e.target.closest("[data-apply-merchant]");
+  if (all){
+    all.disabled = true;
+    try {
+      await api("/api/settings", { method:"POST", body: JSON.stringify({
+        merchantRules: { [decodeURIComponent(all.dataset.applyMerchant)]: decodeURIComponent(all.dataset.cat) } })});
+      await refresh();
+    } catch (err){ banner("warn", err.message); }
+    return;
+  }
+  const del = e.target.closest("[data-txn-del]");
+  if (del){
+    const id = del.dataset.txnDel;
+    del.disabled = true;
+    try {
+      await api(`/api/transactions/${encodeURIComponent(id)}`, { method:"DELETE" });
+      await refresh();
+      banner("warn", "<b>Transaction removed.</b> It stays hidden through future syncs.",
+        `<button class="btn sm" data-txn-restore="${encodeURIComponent(id)}">Undo</button>`);
+    } catch (err){ banner("warn", err.message); del.disabled = false; }
+    return;
+  }
+  const undo = e.target.closest("[data-txn-restore]");
+  if (undo){
+    undo.disabled = true;
+    try { await api(`/api/transactions/${encodeURIComponent(decodeURIComponent(undo.dataset.txnRestore))}/restore`, { method:"POST" }); await refresh(); }
+    catch (err){ banner("warn", err.message); }
+  }
+});
+
+/* ================= ILLIQUID HOLDINGS ================= */
+/* Each position is worth its mark until it exits, then its proceeds reinvest at
+   the base return for whatever horizon is left. Illiquid assets do not compound
+   smoothly, so they are modelled as lumps rather than folded into the balance. */
+function altsAt(year, r){
+  let v = 0;
+  for (const p of REAL_ESTATE){
+    const y = p.yearsToExit;
+    if (y == null){ v += p.mark; continue; }
+    v += year >= y ? p.projectedProceeds * Math.pow(1 + r, year - y) : p.mark;
+  }
+  for (const n of NOTES){
+    const y = n.yearsToMaturity;
+    if (y == null){ v += n.mark; continue; }
+    v += year >= y ? n.atMaturity * Math.pow(1 + r, year - y) : n.mark;
+  }
+  /* Crypto grows at whatever the holder assumes, defaulting to zero. Applying an
+     equity return to it would be inventing a number. */
+  for (const c of CRYPTO) v += c.mark * Math.pow(1 + (c.growthRate || 0), year);
+  for (const pr of PROPERTIES){
+    const val = pr.value * Math.pow(1 + (pr.appreciationRate || 0), year);
+    let bal = pr.mortgage ? pr.mortgage.balance : 0;
+    const pay = pr.mortgage?.monthlyPayment || 0;
+    if (bal && pay){
+      const i = (pr.mortgage.rate || 0) / 12, n = Math.round(year * 12);
+      const g = Math.pow(1 + i, n);
+      bal = i > 0 ? Math.max(0, bal * g - pay * (g - 1) / i) : Math.max(0, bal - pay * n);
+    }
+    v += val - bal;
+  }
+  return v;
+}
+
+/* ================= PROJECTION ENGINE ================= */function renderHoldings(){
+  const re = $("#reList");
+  if (re) re.innerHTML = REAL_ESTATE.length ? REAL_ESTATE.map(p => {
+    const gain = p.unrealisedGain;
+    return `<div class="hold">
+      <span class="chip ${p.kind === "gp" ? "gold" : ""}" style="margin-top:2px">${p.kind.toUpperCase()}</span>
+      <span class="hold-tx">
+        <b>${p.name}</b>
+        <span class="hold-meta">${usd(p.invested)} in \u00b7 ${p.multiple ? p.multiple.toFixed(2) + "x target" : "no target"}${
+          p.exitDate ? ` \u00b7 exit ${new Date(p.exitDate+"T00:00:00").toLocaleDateString("en-US",{month:"short",year:"numeric"})}${p.yearsToExit != null ? ` (${p.yearsToExit.toFixed(1)}y)` : ""}` : " \u00b7 no exit date"}${
+          p.kind === "gp" && p.promotePct ? ` \u00b7 ${p.promotePct}% promote over ${(p.prefRate*100).toFixed(0)}% pref` : ""}</span>
+        <span class="hold-meta">Projects to <b style="color:var(--gold)">${short(p.projectedProceeds)}</b> at exit${
+          p.impliedIrr != null ? ` \u00b7 ${(p.impliedIrr*100).toFixed(1)}% implied IRR` : ""}${
+          p.distributions ? ` \u00b7 ${usd(p.distributions)} distributed` : ""}</span>
+        <span class="hold-meta" style="color:var(--t3)">${
+          p.markSource === "entered" ? "Mark you entered"
+          : p.markSource === "accreted" ? `Estimated &mdash; accreted at the deal IRR, ${p.heldYears.toFixed(1)} of ${p.holdYears.toFixed(1)} years held`
+          : "Held at cost &mdash; add an entry date and exit multiple to estimate a mark"}</span>
+      </span>
+      <span class="hold-v"><b>${usd(p.mark)}${p.markSource === "accreted" ? `<span style="color:var(--t3);font-size:9px"> est</span>` : ""}</b><span class="${gain>=0?"gain":"loss"}">${gain>=0?"+":"\u2212"}${usd(Math.abs(gain))}</span></span>
+      ${LIVE ? `<button class="icon-btn hold-x" data-re-del="${p.id}" title="Remove ${p.name}"><svg><use href="#i-x"/></svg></button>` : ""}
+    </div>`;
+  }).join("") : `<p class="empty">No positions yet. GP and LP interests are invisible to Plaid, so add them here and they count toward net worth and land as lumps on the trajectory at their exit dates.</p>`;
+
+  const pl = $("#propList");
+  if (pl) pl.innerHTML = PROPERTIES.length ? PROPERTIES.map(p => `
+    <div class="hold">
+      <span class="chip" style="margin-top:2px"><svg><use href="#i-bank"/></svg></span>
+      <span class="hold-tx">
+        <b>${p.name}</b>
+        <span class="hold-meta">${usd(p.value)} value \u00b7 ${((p.appreciationRate||0)*100).toFixed(1)}% assumed appreciation</span>
+        <span class="hold-meta">${p.mortgage
+          ? `${usd(p.mortgage.balance)} mortgage at ${(p.mortgage.rate*100).toFixed(2)}%${p.mortgage.linked ? " \u00b7 linked via Plaid" : ""}${p.mortgage.monthlyPayment ? ` \u00b7 ${usd(p.mortgage.monthlyPayment)}/mo` : ""}`
+          : "Owned outright"}</span>
+      </span>
+      <span class="hold-v"><b class="gain">${usd(p.equity)}</b><span>equity</span></span>
+      ${LIVE ? `<button class="icon-btn hold-x" data-prop-del="${p.id}" title="Remove ${p.name}"><svg><use href="#i-x"/></svg></button>` : ""}
+    </div>`).join("") : `<p class="empty">No property yet. Add your home and its mortgage to see real equity in net worth, and to have both sides amortise through the projection.</p>`;
+
+  const nl = $("#noteList");
+  if (nl) nl.innerHTML = NOTES.length ? NOTES.map(n => {
+    const label = { "interest-only":"interest paid monthly", "accrued":"interest accrues", "amortizing":"amortising" }[n.structure];
+    return `<div class="hold">
+      <span class="chip" style="margin-top:2px">NOTE</span>
+      <span class="hold-tx">
+        <b>${n.name}</b>
+        <span class="hold-meta">${usd(n.principal)} at ${(n.rate*100).toFixed(2)}% \u00b7 ${label}${n.borrower ? " \u00b7 " + n.borrower : ""}</span>
+        <span class="hold-meta">${n.maturityDate
+          ? `Matures ${new Date(n.maturityDate+"T00:00:00").toLocaleDateString("en-US",{month:"short",year:"numeric"})}${n.yearsToMaturity!=null?` (${n.yearsToMaturity.toFixed(1)}y)`:""} \u00b7 returns <b style="color:var(--gold)">${short(n.atMaturity)}</b>`
+          : "No maturity date set"}${n.annualIncome ? ` \u00b7 ${usd(Math.round(n.annualIncome))}/yr income` : ""}</span>
+      </span>
+      <span class="hold-v"><b>${usd(n.mark)}</b><span>${n.structure === "accrued" ? "accrued" : "principal"}</span></span>
+      ${LIVE ? `<button class="icon-btn hold-x" data-note-del="${n.id}" title="Remove ${n.name}"><svg><use href="#i-x"/></svg></button>` : ""}
+    </div>`;
+  }).join("") : `<p class="empty">No notes yet. A note you hold as lender counts toward net worth at its carrying value, and its principal lands as a lump on the trajectory at maturity.</p>`;
+
+  const cl = $("#cryptoList");
+  if (cl) cl.innerHTML = CRYPTO.length ? CRYPTO.map(c => `
+    <div class="hold">
+      <span class="chip gold" style="margin-top:2px">${c.symbol || "COIN"}</span>
+      <span class="hold-tx">
+        <b>${c.name}</b>
+        <span class="hold-meta">${c.quantity} at ${usd(c.unitPrice, 2)}${
+          c.change24h != null ? ` \u00b7 <span style="color:${c.change24h>=0?"var(--em)":"var(--rose)"}">${c.change24h>=0?"+":""}${c.change24h.toFixed(2)}% 24h</span>` : ""}</span>
+        <span class="hold-meta" style="color:var(--t3)">${
+          c.priceSource === "coingecko" ? `Live price \u00b7 ${new Date(c.priceUpdated).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}`
+          : c.priceSource === "manual" ? "Price entered by hand"
+          : "No price yet \u2014 press Refresh"}${c.growthRate ? ` \u00b7 projected at ${(c.growthRate*100).toFixed(0)}%/yr` : " \u00b7 held flat in the projection"}</span>
+      </span>
+      <span class="hold-v"><b>${usd(c.mark)}</b><span class="${c.gain>=0?"gain":"loss"}">${c.gain>=0?"+":"\u2212"}${usd(Math.abs(c.gain))}</span></span>
+      ${LIVE ? `<button class="icon-btn hold-x" data-crypto-del="${c.id}" title="Remove ${c.name}"><svg><use href="#i-x"/></svg></button>` : ""}
+    </div>`).join("") : `<p class="empty">No crypto added. Enter a symbol and quantity &mdash; the price is fetched live, so you never maintain it by hand.</p>`;
+
+  const altsRe = REAL_ESTATE.reduce((s,p)=>s+p.mark,0) + NOTES.reduce((s,n)=>s+n.mark,0) + CRYPTO.reduce((s,c)=>s+c.mark,0);
+  const eq = PROPERTIES.reduce((s,p)=>s+p.equity,0);
+  if ($("#altsChip"))   $("#altsChip").textContent   = altsRe ? `${usd(altsRe)} in positions` : "No positions";
+  if ($("#equityChip")) $("#equityChip").textContent = eq ? `${usd(eq)} home equity` : "No property";
+  if ($("#notesChip"))  $("#notesChip").textContent  = NOTES.length ? usd(NOTES.reduce((s,n)=>s+n.mark,0)) : "None";
+  if ($("#cryptoChip")) $("#cryptoChip").textContent = CRYPTO.length ? usd(CRYPTO.reduce((s,c)=>s+c.mark,0)) : "None";
+}
+
+$("#reKind")?.addEventListener("change", e => { $("#rePromoteWrap").hidden = e.target.value !== "gp"; });
+
+const clearFields = ids => ids.forEach(s => { const el = $(s); if (el) el.value = ""; });
+
+$("#reAdd")?.addEventListener("click", async () => {
+  if (!LIVE) return banner("warn", "Connect an institution before adding holdings.");
+  if (!$("#reName").value.trim()) return banner("warn", "Give the position a name.");
+  try {
+    await api("/api/real-estate", { method:"POST", body: JSON.stringify({
+      kind: $("#reKind").value, name: $("#reName").value, invested: $("#reInvested").value,
+      currentValue: $("#reMark").value === "" ? null : $("#reMark").value,
+      entryDate: $("#reEntry").value || null, distributions: $("#reDist").value,
+      multiple: $("#reMult").value, exitDate: $("#reExit").value || null,
+      prefRate: $("#rePref").value ? Number($("#rePref").value)/100 : 0,
+      promotePct: $("#rePromote")?.value || 0 })});
+    clearFields(["#reName","#reInvested","#reEntry","#reMark","#reDist","#reMult","#reExit","#rePref","#rePromote"]);
+    await refresh();
+  } catch (e){ banner("warn", e.message); }
+});
+
+$("#pAdd")?.addEventListener("click", async () => {
+  if (!LIVE) return banner("warn", "Connect an institution before adding holdings.");
+  if (!$("#pName").value.trim()) return banner("warn", "Give the property a name.");
+  try {
+    await api("/api/properties", { method:"POST", body: JSON.stringify({
+      name: $("#pName").value, value: $("#pValue").value,
+      appreciationRate: $("#pAppr").value ? Number($("#pAppr").value)/100 : 0.03,
+      mortgageAccountId: $("#pLink").value || null, mortgageBalance: $("#pBal").value,
+      mortgageRate: $("#pRate").value ? Number($("#pRate").value)/100 : 0,
+      mortgagePayment: $("#pPay").value })});
+    clearFields(["#pName","#pValue","#pAppr","#pBal","#pRate","#pPay"]);
+    await refresh();
+  } catch (e){ banner("warn", e.message); }
+});
+
+$("#nAdd")?.addEventListener("click", async () => {
+  if (!LIVE) return banner("warn", "Connect an institution before adding holdings.");
+  if (!$("#nName").value.trim()) return banner("warn", "Give the note a name.");
+  try {
+    await api("/api/notes", { method:"POST", body: JSON.stringify({
+      name: $("#nName").value, borrower: $("#nBorrower").value, principal: $("#nPrincipal").value,
+      rate: $("#nRate").value ? Number($("#nRate").value)/100 : 0, structure: $("#nStructure").value,
+      startDate: $("#nStart").value || null, maturityDate: $("#nMaturity").value || null })});
+    clearFields(["#nName","#nBorrower","#nPrincipal","#nRate","#nStart","#nMaturity"]);
+    await refresh();
+  } catch (e){ banner("warn", e.message); }
+});
+
+$("#cAdd")?.addEventListener("click", async () => {
+  if (!LIVE) return banner("warn", "Connect an institution before adding holdings.");
+  const sym = $("#cSymbol").value.trim();
+  if (!sym && !$("#cName").value.trim()) return banner("warn", "Give the holding a symbol or a name.");
+  try {
+    const r = await api("/api/crypto", { method:"POST", body: JSON.stringify({
+      symbol: sym, name: $("#cName").value || sym, quantity: $("#cQty").value,
+      costBasis: $("#cBasis").value,
+      growthRate: $("#cGrowth").value ? Number($("#cGrowth").value)/100 : 0 })});
+    clearFields(["#cSymbol","#cName","#cQty","#cBasis","#cGrowth"]);
+    await refresh();
+    const added = r.find(x => (x.symbol||"").toUpperCase() === sym.toUpperCase());
+    if (added && !added.unitPrice) banner("warn", `<b>${sym.toUpperCase()}</b> was added but no price came back. Check the ticker, or press Refresh.`);
+  } catch (e){ banner("warn", e.message); }
+});
+
+$("#cryptoRefresh")?.addEventListener("click", async e => {
+  if (!LIVE) return banner("warn", "Connect an institution first.");
+  const btn = e.currentTarget; btn.disabled = true;
+  try {
+    const r = await api("/api/crypto/refresh", { method:"POST", body: JSON.stringify({}) });
+    await refresh();
+    if (r.unresolved?.length) banner("warn", `No price found for <b>${r.unresolved.join(", ")}</b>. Check the ticker.`);
+  } catch (err){ banner("warn", err.message); }
+  finally { btn.disabled = false; }
+});
+
+document.addEventListener("click", async e => {
+  const map = [["[data-re-del]","reDel","/api/real-estate/"], ["[data-prop-del]","propDel","/api/properties/"],
+               ["[data-note-del]","noteDel","/api/notes/"], ["[data-crypto-del]","cryptoDel","/api/crypto/"]];
+  for (const [sel, key, path] of map){
+    const btn = e.target.closest(sel);
+    if (!btn) continue;
+    btn.disabled = true;
+    try { await api(path + encodeURIComponent(btn.dataset[key]), { method:"DELETE" }); await refresh(); }
+    catch (err){ banner("warn", err.message); btn.disabled = false; }
+    return;
+  }
 });
 
 /* ================= PROJECTION ENGINE ================= */
@@ -1513,7 +1926,7 @@ function drawProj(animate){
   const series = {};
   Object.keys(SC).forEach(k => {
     const {c,r} = scParams(k);
-    series[k] = Array.from({length:H_+1}, (_,y) => fv(INVESTED, c, r, y));
+    series[k] = Array.from({length:H_+1}, (_,y) => fv(INVESTED, c, r, y) + altsAt(y, r));
   });
   const shown = Object.keys(SC).filter(k => P.on[k]);
   let max = Math.max(P.goal*1.08, ...shown.flatMap(k=>series[k]));
@@ -1583,9 +1996,9 @@ function drawProj(animate){
 
   /* horizon table */
   $("#horizonBody").innerHTML = [5,10,15,20,30].map(h => {
-    const w = fv(INVESTED, scParams("worst").c, scParams("worst").r, h);
-    const b = fv(INVESTED, scParams("base").c,  scParams("base").r,  h);
-    const s = fv(INVESTED, scParams("best").c,  scParams("best").r,  h);
+    const w = fv(INVESTED, scParams("worst").c, scParams("worst").r, h) + altsAt(h, scParams("worst").r);
+    const b = fv(INVESTED, scParams("base").c,  scParams("base").r,  h) + altsAt(h, scParams("base").r);
+    const s = fv(INVESTED, scParams("best").c,  scParams("best").r,  h) + altsAt(h, scParams("best").r);
     const d = b - P.goal;
     return `<tr${h===P.horizon?' style="background:rgba(212,175,97,.07)"':""}>
       <td>${h} years <span style="color:var(--t3)">\u00b7 ${2026+h}</span></td>
@@ -1598,7 +2011,7 @@ function drawProj(animate){
   /* goal gap */
   const bp = scParams("base");
   let hitYear = null;
-  for (let y=0; y<=50; y++) if (fv(INVESTED, bp.c, bp.r, y) >= P.goal){ hitYear = y; break; }
+  for (let y=0; y<=50; y++) if (fv(INVESTED, bp.c, bp.r, y) + altsAt(y, bp.r) >= P.goal){ hitYear = y; break; }
   const req = requiredMonthly(P.goal, INVESTED, bp.r, GOAL_YEARS);
   const panel = $("#gapPanel");
   if (hitYear !== null && hitYear <= GOAL_YEARS){
@@ -1609,7 +2022,7 @@ function drawProj(animate){
     $("#gapYear").className = "gain";
     $("#gapYearSub").textContent = `${hitYear} years at ${pct(bp.r*100)}`;
   } else {
-    const shortfall = P.goal - fv(INVESTED, bp.c, bp.r, GOAL_YEARS);
+    const shortfall = P.goal - (fv(INVESTED, bp.c, bp.r, GOAL_YEARS) + altsAt(GOAL_YEARS, bp.r));
     panel.className = "note";
     panel.style.borderColor = "rgba(242,118,107,.28)";
     panel.style.background = "var(--rose-wash)";
@@ -1620,6 +2033,8 @@ function drawProj(animate){
   }
   if (hitYear !== null && hitYear <= GOAL_YEARS){ panel.style.borderColor=""; panel.style.background=""; }
   $("#gapReq").textContent = usd(Math.round(req));
+
+  renderGoalBand(bp, hitYear);
 
   /* leak opportunity cost tracks the same return */
   const leakM = LEAKS.filter(l=>l.cancel).reduce((s,l)=>s+l.m,0);
@@ -1641,6 +2056,40 @@ function renderLeaks(r){
   }).join("");
 }
 
+/* Everything you own today against the target, and the monthly contribution that
+   closes the gap by the goal date. */
+function renderGoalBand(bp, hitYear){
+  const box = $("#goalBand"); if (!box) return;
+  const today = INVESTED + altsAt(0, bp.r);
+  const pctToGoal = P.goal ? Math.min(100, (today / P.goal) * 100) : 0;
+  const need = requiredMonthly(P.goal, INVESTED + altsAt(0, bp.r), bp.r, GOAL_YEARS);
+  const delta = need - P.contrib;
+  const done = today >= P.goal;
+
+  const parts = [];
+  if (TOTALS.invested) parts.push(`<u>${short(TOTALS.invested)}</u> securities`);
+  if (ALTS_TOTAL)      parts.push(`<u>${short(ALTS_TOTAL)}</u> positions`);
+  if (HOME_EQUITY)     parts.push(`<u>${short(HOME_EQUITY)}</u> home equity`);
+
+  box.innerHTML = `
+    <div class="goal-top">
+      <b>${usd(Math.round(today))}</b>
+      <span>of <b style="color:var(--gold)">${short(P.goal)}</b> &middot; ${pctToGoal.toFixed(1)}% there</span>
+      <span class="bsp" style="flex:1"></span>
+      <span>${done ? "Target already met"
+        : hitYear != null ? `On this path you arrive in <b style="color:var(--t0)">${hitYear} years</b> (${2026+hitYear})`
+        : "Not reached within 50 years on this path"}</span>
+    </div>
+    <div class="goal-bar"><i class="${done?"done":""}" style="width:${pctToGoal}%"></i></div>
+    <div class="goal-split">${parts.join(" &middot; ") || "Nothing invested yet"}</div>
+    <div class="goal-split" style="color:var(--t1)">
+      ${done ? `You are past the target. Anything further is surplus.`
+        : delta <= 0
+          ? `Contributing <b style="color:var(--em)">${usd(Math.round(P.contrib))}</b>/mo, which is <b style="color:var(--em)">${usd(Math.round(-delta))}</b> more than the <b>${usd(Math.round(need))}</b>/mo needed to land on ${2026+GOAL_YEARS}.`
+          : `Contributing <b>${usd(Math.round(P.contrib))}</b>/mo. Hitting ${short(P.goal)} by ${2026+GOAL_YEARS} needs <b style="color:var(--gold)">${usd(Math.round(need))}</b>/mo &mdash; <b style="color:var(--rose)">${usd(Math.round(delta))} more each month</b>.`}
+    </div>`;
+}
+
 /* projection controls \u2014 instant redraw while dragging, no draw-in animation */
 const bindRange = (id, fn) => { const el=$(id); el.addEventListener("input", ()=>{ fn(el); drawProj(false); }); };
 bindRange("#sContrib", el => { P.contrib = +el.value; $("#vContrib").textContent = usd(P.contrib); });
@@ -1659,137 +2108,54 @@ $("#projLegend").addEventListener("click", e => {
   P.on[k] = next; b.setAttribute("aria-pressed", String(next)); drawProj(false);
 });
 
-/* ================= DEBT SIMULATOR ================= */
-function order(strategy, ds){
-  const c = [...ds];
-  if (strategy === "snowball") return c.sort((a,b)=>a.bal-b.bal);
-  if (strategy === "avalanche") return c.sort((a,b)=>b.apr-a.apr || a.bal-b.bal);
-  const promo = c.filter(d=>d.promoEnd!=null).sort((a,b)=>a.promoEnd-b.promoEnd);
-  const rest  = c.filter(d=>d.promoEnd==null).sort((a,b)=>b.apr-a.apr);
-  return [...promo, ...rest];
-}
-
-function simulate(strategy, extra){
-  const st = DEBTS.map(d=>({...d, b:d.bal, paid:null, interest:0}));
-  const seq = order(strategy, st).map(d=>st.find(s=>s.id===d.id));
-  const exposure = {};
-  let totalInt = 0, m = 0;
-
-  while (st.some(d=>d.b > .005) && m < 480){
-    st.forEach(d => {
-      if (d.b <= .005) return;
-      const apr = (d.promoEnd != null && m < d.promoEnd) ? 0 : (d.post ?? d.apr);
-      const int = d.b * apr/12;
-      d.b += int; d.interest += int; totalInt += int;
-    });
-    let pool = extra;
-    st.forEach(d => {
-      if (d.b <= .005) return;
-      const pay = Math.min(d.min, d.b);
-      d.b -= pay;
-      if (d.b <= .005 && d.paid === null) d.paid = m;
-    });
-    for (const d of seq){
-      if (pool <= 0) break;
-      if (d.b <= .005) continue;
-      const pay = Math.min(pool, d.b);
-      d.b -= pay; pool -= pay;
-      if (d.b <= .005 && d.paid === null) d.paid = m;
-    }
-    st.forEach(d => { if (d.promoEnd != null && m === d.promoEnd-1) exposure[d.id] = Math.max(0, d.b); });
-    m++;
-  }
-  st.forEach(d => { if (d.promoEnd != null && exposure[d.id] == null) exposure[d.id] = 0; });
-  return { st, seq, months:m, totalInt, exposure };
-}
-
-const monthLabel = k => { const d = new Date(START.getFullYear(), START.getMonth()+k, 1); return MONTHS[d.getMonth()]+" "+d.getFullYear(); };
-
-function renderDebt(){
-  const strategy = $$("#stratTabs button").find(b=>b.getAttribute("aria-pressed")==="true").dataset.st;
-  const extra = +$("#sExtra").value;
-  const R = simulate(strategy, extra);
-  const alt = ["deadline","avalanche","snowball"].filter(s=>s!==strategy).map(s=>({s, r:simulate(s, extra)}));
-
-  $("#debtBody").innerHTML = R.seq.map((d,i) => {
-    const promo = d.promoEnd != null;
-    const exp = R.exposure[d.id] || 0;
-    return `<tr>
-      <td class="n" style="text-align:left;color:var(--t3)">${i+1}</td>
-      <td>${d.n}<div style="margin-top:4px"><span class="chip ${promo?(exp>0?"rose":"vio"):""}" style="font-size:9px;padding:2px 6px">${d.kind}</span></div></td>
-      <td class="n">${usd(d.bal)}</td>
-      <td class="n ${promo?"viot":""}">${promo?"0% \u2192 "+pct(d.post*100,2):pct(d.apr*100,2)}</td>
-      <td class="n">${d.paid!=null?monthLabel(d.paid):"\u2014"}</td>
-      <td class="n ${d.interest>0?"loss":"dim"}">${usd(Math.round(d.interest))}</td></tr>`;
-  }).join("");
-
-  const totalExp = Object.values(R.exposure).reduce((s,v)=>s+v,0);
-  const first = R.seq.filter(d=>d.paid!=null).sort((a,b)=>a.paid-b.paid)[0];
-
-  $("#dFree").textContent = monthLabel(R.months-1);
-  $("#dFreeSub").textContent = `${R.months} months at ${usd(873+extra)}/mo`;
-  $("#dInt").textContent = usd(Math.round(R.totalInt));
-  const best = Math.min(R.totalInt, ...alt.map(a=>a.r.totalInt));
-  $("#dIntSub").textContent = R.totalInt <= best + .5
-    ? "Lowest of the three strategies"
-    : `${usd(Math.round(R.totalInt-best))} more than the best option`;
-  $("#dExp").textContent = usd(Math.round(totalExp));
-  $("#dExp").className = totalExp > 0 ? "loss" : "gain";
-  $("#dFirst").textContent = first ? first.sn : "\u2014";
-  $("#dFirstSub").textContent = first ? `Cleared ${monthLabel(first.paid)}` : "\u2014";
-
-  renderPromoClocks(R, extra);
-
-  const note = $("#stratNote"), tx = $("#stratNoteTx");
-  const hysaRate = .041;
-  const carry = Object.entries(R.exposure).reduce((s,[id,v]) => {
-    const d = DEBTS.find(x=>x.id===id); return s + v*(d.post||0);
-  }, 0);
-  const forgone = totalExp * hysaRate;
-
-  if (totalExp > 0){
-    note.style.borderColor = "rgba(212,175,97,.28)";
-    note.style.background = "rgba(212,175,97,.075)";
-    note.querySelector("svg").style.color = "var(--gold)";
-    tx.innerHTML = `<b>${usd(Math.round(totalExp))}</b> is still on 0% cards when their windows close \u2014 that starts costing <b>${usd(Math.round(carry))}/yr</b>. Covering it from the Ally savings on expiry day forgoes <b>${usd(Math.round(forgone))}/yr</b> of 4.10% yield instead. Net saving: <b>${usd(Math.round(carry-forgone))}/yr</b>.`;
-  } else {
-    note.style.borderColor = ""; note.style.background = "";
-    note.querySelector("svg").style.color = "var(--em)";
-    tx.innerHTML = `Every 0% window closes at a <b>$0</b> balance. No deferred interest, no rate reset \u2014 the promos did exactly what they were for.`;
-  }
-}
-function renderPromoClocks(R, extra){
+/* ================= 0% PROMO CLOCKS ================= */
+function renderPromoClocks(){
   const box = $("#promoClocks"); if (!box) return;
-  const promos = DEBTS.filter(d => d.promoEnd != null || d.needsPromoDate);
+  const promos = DEBTS.filter(d => d.promoEnd != null || d.needsPromoDate || d.days != null);
+  const chip = $("#promoTotal");
+
   if (!promos.length){
-    box.innerHTML = `<div class="note"><svg><use href="#i-check"/></svg><div>No 0% promotional balances detected. If a card starts one, Meridian reads it from the APR table on the next sync and opens a clock here.</div></div>`;
+    box.innerHTML = `<div class="note"><svg><use href="#i-check"/></svg><div>No 0% promotional balances detected. If a card is on one that Plaid did not report, open the <b>Credit</b> tab in the account hub and press <b>Mark 0%</b>.</div></div>`;
+    if (chip) chip.textContent = "None active";
     return;
   }
+  if (chip) chip.textContent = `${usd(promos.reduce((t,d)=>t+d.bal,0))} on 0%`;
+
   box.innerHTML = promos.map(d => {
-    const exp   = Math.round((R && R.exposure && R.exposure[d.id]) || 0);
-    const idx   = R ? R.seq.findIndex(x => x.id === d.id) : -1;
-    const routed= d.min + (idx === 0 ? extra : 0);
+    const days  = d.days != null ? d.days : null;
     const stmts = Math.max(1, d.promoEnd || 1);
     const clear = d.bal / stmts;
-    const days  = d.days != null ? d.days : null;
+    const minOnly = Math.max(0, d.bal - d.min * stmts);   // what minimums alone leave behind
     const frac  = days != null ? Math.max(0, Math.min(1, days / (d.window || 365))) : 0;
     const C = 150.8;
-    const crit  = exp > 0;
-    const col   = crit ? "var(--rose)" : "var(--vio)";
+    const short_ = minOnly > 0;
+    const col = days != null && days <= 120 ? "var(--rose)" : "var(--vio)";
 
-    if (d.needsPromoDate || days == null){
+    /* The end date is the one field no aggregator supplies, so it stays editable
+       for the life of the card rather than being a one-time prompt. */
+    const edit = LIVE ? `<div class="promo-edit">
+        <span class="lbl">Ends</span>
+        <input type="date" data-promo="${d.id}" value="${d.endISO || ""}" aria-label="Promo end date for ${d.n}">
+        ${d.postKnown === false ? `<span class="lbl">then</span>
+          <input type="number" min="0" max="99" step="0.01" style="width:74px" data-promo-rate="${d.id}"
+                 value="${d.post ? (d.post*100).toFixed(2) : ""}" placeholder="?" title="Rate this card reverts to when the promo ends"
+                 aria-label="Post-promo APR for ${d.n}">%` : ""}
+        <button class="btn sm" data-unpromo="${d.id}" title="This card is not on a 0% promotion">Not 0%</button>
+      </div>` : "";
+
+    if (days == null){
       return `<div class="promo">
         <div class="promo-head">
           <div class="ring"><svg viewBox="0 0 56 56"><circle class="ring-bg" cx="28" cy="28" r="24"/></svg>
             <div class="ring-tx"><b>?</b><span>days</span></div></div>
-          <div class="promo-meta"><b>${d.n}</b><span>0% detected \u00b7 ${usd(d.bal)}</span>
+          <div class="promo-meta"><b>${d.n}</b><span>0% on ${usd(d.bal)}${d.manualPromo ? " &middot; marked by you" : ""}</span>
             <span class="chip vio" style="margin-top:3px;align-self:flex-start"><svg><use href="#i-clock"/></svg>Needs end date</span></div>
         </div>
-        <p class="promo-note">Plaid reports the 0% rate but not when it ends &mdash; that lives in your cardmember agreement.
-          Add it and the clock starts: <input type="date" data-promo="${d.id}" aria-label="Promo end date for ${d.n}"></p>
+        <p class="promo-note">Plaid reports the 0% rate but not when it ends &mdash; that lives in your cardmember agreement. Add it and the clock starts.</p>
+        ${edit}
       </div>`;
     }
-    return `<div class="promo${crit ? " crit" : ""}">
+    return `<div class="promo${days <= 120 ? " crit" : ""}">
       <div class="promo-head">
         <div class="ring">
           <svg viewBox="0 0 56 56"><circle class="ring-bg" cx="28" cy="28" r="24"/>
@@ -1798,50 +2164,61 @@ function renderPromoClocks(R, extra){
         </div>
         <div class="promo-meta">
           <b>${d.n}</b>
-          <span>Ends ${d.end} &rarr; ${d.post ? (d.post*100).toFixed(2)+"%" : "standard APR"}</span>
-          <span class="chip ${crit ? "rose" : "vio"}" style="margin-top:3px;align-self:flex-start">
-            <svg><use href="#i-${crit ? "alert" : "clock"}"/></svg>${crit ? "Shortfall" : "Clears in time"}</span>
+          <span>Ends ${d.end} &rarr; ${d.post ? (d.post*100).toFixed(2)+"%" : "?"}${d.postKnown === false ? " (assumed)" : ""}</span>
+          <span class="chip ${short_ ? "rose" : "vio"}" style="margin-top:3px;align-self:flex-start">
+            <svg><use href="#i-${short_ ? "alert" : "clock"}"/></svg>${stmts} statement${stmts>1?"s":""} left</span>
         </div>
       </div>
       <div class="promo-facts">
         <div class="fact"><span class="lbl">Balance</span><b>${usd(d.bal)}</b></div>
-        <div class="fact"><span class="lbl">To clear</span><b class="${crit ? "loss" : "viot"}">${usd(Math.round(clear))}/mo</b></div>
+        <div class="fact"><span class="lbl">To clear in time</span><b class="${short_ ? "loss" : "viot"}">${usd(Math.round(clear))}/mo</b></div>
       </div>
-      <p class="promo-note">${stmts} statement${stmts>1?"s":""} left. Routing <b>${usd(Math.round(routed))}</b>/mo, ${
-        crit ? `so <b style="color:var(--rose)">${usd(exp)}</b> is exposed on day one.`
-             : `which clears it with <b style="color:var(--em)">$0</b> exposed.`}</p>
+      <p class="promo-note">${short_
+        ? `The ${usd(Math.round(d.min))} minimum only retires ${usd(Math.round(d.min * stmts))} of it &mdash; <b style="color:var(--rose)">${usd(Math.round(minOnly))}</b> would still be sitting there when ${d.post ? (d.post*100).toFixed(2)+"%" : "the standard rate"} starts.`
+        : `The ${usd(Math.round(d.min))} minimum clears it on its own with <b style="color:var(--em)">$0</b> left when the window closes.`}</p>
+      ${edit}
     </div>`;
   }).join("");
 }
 
-/* setting a promo end date is the one thing no aggregator can tell us */
+/* The promo end date and go-to rate are the two fields no aggregator supplies. */
 document.addEventListener("change", async e => {
-  const inp = e.target.closest("input[data-promo]"); if (!inp || !inp.value) return;
-  if (!LIVE){ banner("warn", "Connect an institution before setting promo dates."); return; }
+  const rate = e.target.closest("input[data-promo-rate]");
+  if (rate){
+    const v = Number(rate.value);
+    if (!Number.isFinite(v) || v < 0) return banner("warn", "The post-promo rate needs a number.");
+    rate.disabled = true;
+    try {
+      await api("/api/settings", { method:"POST", body: JSON.stringify({ promoOverrides: { [rate.dataset.promoRate]: { postApr: v/100 } } }) });
+      await refresh();
+    } catch (err){ banner("warn", err.message); rate.disabled = false; }
+    return;
+  }
+  const inp = e.target.closest("input[data-promo]");
+  if (!inp || !inp.value) return;
+  if (!LIVE) return banner("warn", "Connect an institution before setting promo dates.");
+  inp.disabled = true;
   try {
     await api("/api/settings", { method:"POST", body: JSON.stringify({ promoEnds: { [inp.dataset.promo]: inp.value } }) });
     await refresh();
-  } catch (err){ banner("warn", err.message); }
+  } catch (err){ banner("warn", err.message); inp.disabled = false; }
 });
 
-$("#stratTabs").addEventListener("click", e => {
-  const b = e.target.closest("button"); if(!b) return;
-  $$("#stratTabs button").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
-  renderDebt();
-});
-$("#sExtra").addEventListener("input", () => { $("#vExtra").textContent = usd(+$("#sExtra").value); renderDebt(); });
-
-/* ================= NUDGES ================= */
-$("#nudges").addEventListener("click", e => {
-  const x = e.target.closest("[data-dismiss],[data-snooze]");
-  if (!x) return;
-  const card = x.closest(".nudge");
-  card.classList.add("out");
-  setTimeout(()=>card.remove(), REDUCE ? 0 : 190);
+/* Plaid can miss a 0% window, or report a stale one. Both are correctable. */
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-promo-set],[data-unpromo]"); if (!b) return;
+  const id = b.dataset.promoSet || b.dataset.unpromo;
+  const turningOn = b.dataset.unpromo ? false : b.dataset.on !== "1";
+  b.disabled = true;
+  try {
+    await api("/api/settings", { method:"POST", body: JSON.stringify({ promoOverrides: { [id]: { isPromo: turningOn } } }) });
+    await refresh();
+    if (turningOn) banner("warn", "<b>Marked as a 0% promo.</b> Add the end date on its clock so the countdown can work.");
+  } catch (err){ banner("warn", err.message); b.disabled = false; }
 });
 
-/* ================= QUICK ACTIONS / RAIL NAV ================= */
-const GO = { top:"#top", accounts:"#accounts", leaks:"#leaks", projection:"#projection", debt:"#debt", security:"#security" };
+/* ================= QUICK ACTIONS / RAIL NAV ================= *//* ================= QUICK ACTIONS / RAIL NAV ================= *//* ================= QUICK ACTIONS / RAIL NAV ================= */
+const GO = { top:"#top", accounts:"#accounts", promos:"#promos", holdings:"#holdings", leaks:"#leaks", projection:"#projection", security:"#security" };
 function goto(k){
   const el = $(GO[k]); if(!el) return;
   el.scrollIntoView({behavior: REDUCE ? "auto" : "smooth", block:"start"});
@@ -1854,7 +2231,7 @@ document.addEventListener("click", e => {
   const a = e.target.closest("[data-act]"); if (!a) return;
   const k = a.dataset.act;
   if (k === "link") return openLink();
-  if (k === "promo" || k === "debt") return goto("debt");
+  if (k === "promo" || k === "debt") return goto("promos");
   if (k === "leaks" || k === "cancel") return goto("leaks");
   if (k === "sweep") return goto("projection");
 });
@@ -1979,7 +2356,8 @@ const CMDS = [
   {t:"Account hub",      k:"go", go:"accounts",   i:"i-wallet"},
   {t:"Money leaks",      k:"go", go:"leaks",      i:"i-scissors"},
   {t:"Trajectory",       k:"go", go:"projection", i:"i-trend"},
-  {t:"Debt routing",     k:"go", go:"debt",       i:"i-route"},
+  {t:"0% promo clocks",  k:"go", go:"promos",     i:"i-clock"},
+  {t:"Holdings",         k:"go", go:"holdings",   i:"i-bank"},
   {t:"Security & data",  k:"go", go:"security",   i:"i-shield"},
   {t:"Link an institution", k:"act", act:"link",  i:"i-link"},
   {t:"Re-sync all accounts", k:"sync",            i:"i-refresh"},
@@ -2044,6 +2422,9 @@ function countUp(){
 
 /* ================= LIVE DATA LAYER ================= */
 let LIVE = false;
+let HIDDEN_ACCOUNTS = [], HIDDEN_SHOWN = false, KNOWN_CATEGORIES = [], BUDGET_EDIT = false;
+let REAL_ESTATE = [], PROPERTIES = [], NOTES = [], CRYPTO = [];
+let ALTS_TOTAL = 0, HOME_EQUITY = 0;
 
 async function api(p, opts){
   const r = await fetch(p, { headers:{ "Content-Type":"application/json" }, ...(opts || {}) });
@@ -2057,8 +2438,15 @@ function banner(kind, html, actionHtml){
   b.hidden = false;
   b.className = kind;
   const icon = kind === "live" ? "i-check" : kind === "warn" ? "i-alert" : "i-eye-off";
-  b.innerHTML = `<svg><use href="#${icon}"/></svg><span>${html}</span><span class="bsp"></span>${actionHtml || ""}`;
+  b.innerHTML = `<svg><use href="#${icon}"/></svg><span>${html}</span><span class="bsp"></span>${actionHtml || ""}`
+    + `<button class="icon-btn" id="bannerClose" title="Dismiss"><svg><use href="#i-x"/></svg><span class="sr">Dismiss</span></button>`;
 }
+
+document.addEventListener("click", e => {
+  if (!e.target.closest("#bannerClose")) return;
+  $("#banner").hidden = true;
+  HIDDEN_SHOWN = false;
+});
 
 function rerender(){
   const pressed = sel => { const b = $$(sel).find(x => x.getAttribute("aria-pressed") === "true"); return b || null; };
@@ -2070,21 +2458,9 @@ function rerender(){
   renderBudget();
   renderTxns(tf ? tf.dataset.f : "all");
   renderNwStats();
+  renderHoldings();
   drawProj(false);
-  renderDebt();
-}
-
-function heroSentence(S){
-  const bits = [];
-  const n = S.items.length;
-  bits.push(`<b>${n}</b> institution${n === 1 ? "" : "s"} connected and <b>${nf(S.txns.length)}</b> transactions read.`);
-  const leakM = (S.leaks || []).filter(l => l.cancel).reduce((s, l) => s + l.m, 0);
-  if (leakM > 0) bits.push(`<span class="up">${usd(Math.round(leakM))}/mo</span> is running through recurring charges worth a look.`);
-  const promo = (S.debts || []).filter(d => d.promoEnd != null && d.days != null).sort((a,b) => a.days - b.days)[0];
-  const needs = (S.needsPromoDates || []).length;
-  if (promo) bits.push(`A 0% promo ends in <b>${promo.days} days</b> with ${usd(promo.bal)} still on it.`);
-  else if (needs) bits.push(`<b>${needs}</b> card${needs === 1 ? " carries" : "s carry"} a 0% rate with no end date set yet.`);
-  return bits.join(" ");
+  renderPromoClocks();
 }
 
 function applyState(S){
@@ -2096,6 +2472,14 @@ function applyState(S){
   LEAKS    = S.leaks;
   TOTALS   = S.totals;
   INVESTED = S.totals.invested;
+  KNOWN_CATEGORIES = S.knownCategories || [];
+  HIDDEN_ACCOUNTS  = S.hiddenAccounts || [];
+  REAL_ESTATE = S.realEstate || [];
+  PROPERTIES  = S.properties || [];
+  NOTES       = S.notes || [];
+  CRYPTO      = S.crypto || [];
+  ALTS_TOTAL  = S.altsTotal || 0;
+  HOME_EQUITY = S.homeEquity || 0;
   DAY = S.day; DAYS_IN_MONTH = S.daysInMonth; THRU = S.thru;
   START = new Date(S.asOf);
   DAILY = (S.anchors || []).map(a => ({ d: new Date(a.date + "T00:00:00"), v: a.v }));
@@ -2104,7 +2488,6 @@ function applyState(S){
   if (st.goal)          { P.goal = st.goal;        $("#sGoal").value = st.goal;                    $("#vGoal").textContent = short(st.goal); }
   if (st.baseReturn)    { P.ret = st.baseReturn;   $("#sReturn").value = (st.baseReturn*100).toFixed(1); $("#vReturn").textContent = pct(st.baseReturn*100); }
   if (st.contribution)  { P.contrib = st.contribution; $("#sContrib").value = st.contribution;     $("#vContrib").textContent = usd(st.contribution); }
-  if (st.extraDebtPayment != null) { $("#sExtra").value = st.extraDebtPayment;                     $("#vExtra").textContent = usd(st.extraDebtPayment); }
 
   /* hero */
   $("#nwVal").dataset.target = S.totals.net;
@@ -2148,7 +2531,18 @@ function applyState(S){
     M[2].querySelector(".mt").textContent = "Income minus tracked spending, month to date";
   }
 
-  $("#heroSay").innerHTML = heroSentence(S);
+  const link = $("#pLink");
+  if (link){
+    const loans = (S.accounts.credit || []).filter(a => !String(a.id).startsWith("manual:"));
+    link.innerHTML = `<option value="">Enter manually below</option>` +
+      loans.map(a => `<option value="${a.id}">${a.name} &mdash; ${usd(Math.abs(a.v))}</option>`).join("");
+  }
+  const asOf = $("#asOfChip");
+  if (asOf){
+    const last = S.items.map(i => i.lastSync).filter(Boolean).sort().pop();
+    asOf.innerHTML = `<span class="dot"></span>${S.items.length} institution${S.items.length===1?"":"s"} \u00b7 synced ${
+      last ? new Date(last).toLocaleString([], {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"}) : "never"}`;
+  }
   rerender();
 }
 
@@ -2195,12 +2589,12 @@ renderAccounts("cash");
 renderBudget();
 renderTxns("all");
 renderNwStats();
+renderHoldings();
 $("#vContrib").textContent = usd(P.contrib);
 $("#vReturn").textContent  = pct(P.ret*100);
 $("#vGoal").textContent    = short(P.goal);
-$("#vExtra").textContent   = usd(+$("#sExtra").value);
 drawProj(true);
-renderDebt();
+renderPromoClocks();
 countUp();
 refresh();
 

@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import { Configuration, PlaidApi, PlaidEnvironments, Products, CountryCode } from "plaid";
 import * as store from "./store.js";
 import { buildState } from "./normalize.js";
+import { fetchPrices } from "./prices.js";
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4800);
@@ -260,6 +261,7 @@ app.post("/api/sync", async (req, res) => {
       results.push({ itemId: item.itemId, institution: item.institutionName, error: code || e.message });
     }
   }
+  try { await refreshCryptoPrices(); } catch (e) { console.log("[prices]", e.message); }
   snapshotNow();
   res.json({ items: items.length, results, at: new Date().toISOString() });
 });
@@ -523,7 +525,37 @@ app.delete("/api/notes/:id", (req, res) => {
   res.json(store.read().notes);
 });
 
-app.post("/api/crypto", (req, res) => {
+/* Refresh crypto marks from a live feed. Only tickers leave this machine. */
+async function refreshCryptoPrices() {
+  const held = store.read().crypto || [];
+  if (!held.length) return { updated: 0, unresolved: [] };
+  const { prices, unresolved } = await fetchPrices(held);
+  let updated = 0;
+  store.update(s => {
+    for (const c of s.crypto) {
+      const hit = prices[String(c.symbol || "").toUpperCase()];
+      if (!hit) continue;
+      c.unitPrice = hit.usd;
+      c.change24h = hit.change24h;
+      c.priceUpdated = new Date().toISOString();
+      c.priceSource = "coingecko";
+      updated++;
+    }
+  });
+  return { updated, unresolved };
+}
+
+app.post("/api/crypto/refresh", async (req, res) => {
+  try {
+    const r = await refreshCryptoPrices();
+    snapshotNow();
+    res.json({ ...r, at: new Date().toISOString() });
+  } catch (e) {
+    res.status(502).json({ error: "Price feed unavailable: " + e.message });
+  }
+});
+
+app.post("/api/crypto", async (req, res) => {
   const b = req.body || {};
   if (!b.name?.trim() && !b.symbol?.trim()) return res.status(400).json({ error: "Give the holding a name or symbol." });
   const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
@@ -532,15 +564,22 @@ app.post("/api/crypto", (req, res) => {
     name: (b.name || b.symbol).trim(),
     symbol: (b.symbol || "").trim().toUpperCase(),
     quantity: num(b.quantity),
-    unitPrice: num(b.unitPrice),
     costBasis: num(b.costBasis),
     growthRate: num(b.growthRate),
-    priceUpdated: new Date().toISOString().slice(0, 10)
+    coingeckoId: (b.coingeckoId || "").trim() || null
   };
+  /* unitPrice is deliberately not taken from the request: it comes from the
+   * feed, so a stale number typed once cannot linger as if it were current. */
+  if (b.unitPrice != null && b.unitPrice !== "") {
+    rec.unitPrice = num(b.unitPrice);
+    rec.priceSource = "manual";
+    rec.priceUpdated = new Date().toISOString();
+  }
   store.update(s => {
     const i = s.crypto.findIndex(x => x.id === rec.id);
     if (i >= 0) s.crypto[i] = { ...s.crypto[i], ...rec }; else s.crypto.push(rec);
   });
+  try { await refreshCryptoPrices(); } catch (e) { console.log("[prices]", e.message); }
   snapshotNow();
   res.json(store.read().crypto);
 });
