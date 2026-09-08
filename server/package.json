@@ -1,0 +1,24 @@
+{
+  "name": "meridian-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local Plaid integration server for the Meridian Wealth Console. Binds to 127.0.0.1 only.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "verify": "node verify.js",
+    "seed": "node verify.js --seed",
+    "test": "node test-normalize.js",
+    "doctor": "node doctor.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "plaid": "^27.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

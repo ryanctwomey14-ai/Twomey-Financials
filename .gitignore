@@ -1,0 +1,9 @@
+# Secrets and local financial data — never commit these.
+server/.env
+server/data/
+server/node_modules/
+node_modules/
+
+# OS noise
+Thumbs.db
+.DS_Store
