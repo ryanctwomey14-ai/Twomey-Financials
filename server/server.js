@@ -58,10 +58,21 @@ app.post("/api/logout", auth.logout);
 app.use(auth.middleware);
 app.use(express.static(path.join(DIR, "..", "app")));
 
+/* CSRF guard. Browsers omit Origin on same-origin GETs but always send it on
+ * writes, so this compares it against the host the request actually arrived on.
+ * Pinning it to loopback instead would reject every write once the dashboard is
+ * reached through a tunnel or any other hostname. */
+app.set("trust proxy", true);
 app.use("/api", (req, res, next) => {
   if (req.path === "/webhook") return next();          // Plaid posts here, no Origin header
   const o = req.get("origin");
-  if (o && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o)) {
+  if (!o) return next();                               // same-origin GET, or a non-browser client
+  const host = req.get("x-forwarded-host") || req.get("host");
+  const proto = req.get("x-forwarded-proto") || req.protocol;
+  const sameOrigin = o === `${proto}://${host}` || o === `https://${host}` || o === `http://${host}`;
+  const loopback = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o);
+  if (!sameOrigin && !loopback) {
+    console.warn(`[csrf] rejected origin ${o} (host ${host})`);
     return res.status(403).json({ error: "Cross-origin requests are not accepted." });
   }
   next();

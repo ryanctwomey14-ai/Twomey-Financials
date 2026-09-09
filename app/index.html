@@ -1833,6 +1833,8 @@ $("#reAdd")?.addEventListener("click", async () => {
       multiple: $("#reMult").value, exitDate: $("#reExit").value || null })});
     clearFields(["#reName","#reInvested","#reEntry","#reMark","#reMult","#reExit"]);
     await refresh();
+    banner("live", `<b>Position added.</b> It now counts toward net worth and lands on the trajectory at its exit date.`);
+    goto("holdings");
   } catch (e){ banner("warn", e.message); }
 });
 
@@ -1848,6 +1850,8 @@ $("#pAdd")?.addEventListener("click", async () => {
       mortgagePayment: $("#pPay").value })});
     clearFields(["#pName","#pValue","#pAppr","#pBal","#pRate","#pPay"]);
     await refresh();
+    banner("live", `<b>Property added.</b> Equity counts toward net worth and both sides amortise through the projection.`);
+    goto("holdings");
   } catch (e){ banner("warn", e.message); }
 });
 
@@ -1862,6 +1866,8 @@ $("#nAdd")?.addEventListener("click", async () => {
       startDate: $("#nStart").value || null, maturityDate: $("#nMaturity").value || null })});
     clearFields(["#nName","#nBorrower","#nPrincipal","#nRate","#nStart","#nMaturity"]);
     await refresh();
+    banner("live", `<b>Note added.</b> Its principal lands on the trajectory at maturity.`);
+    goto("holdings");
   } catch (e){ banner("warn", e.message); }
 });
 
@@ -1877,6 +1883,8 @@ $("#cAdd")?.addEventListener("click", async () => {
     await refresh();
     const added = r.find(x => (x.symbol||"").toUpperCase() === sym.toUpperCase());
     if (added && !added.unitPrice) banner("warn", `<b>${sym.toUpperCase()}</b> was added but no price came back. Check the ticker, or press Refresh.`);
+    else banner("live", `<b>${sym.toUpperCase()} added</b> at ${usd(added?.unitPrice ?? 0, 2)}. Counted in net worth and the projection.`);
+    goto("holdings");
   } catch (e){ banner("warn", e.message); }
 });
 
@@ -2435,7 +2443,20 @@ let REAL_ESTATE = [], PROPERTIES = [], NOTES = [], CRYPTO = [];
 let ALTS_TOTAL = 0, HOME_EQUITY = 0;
 
 async function api(p, opts){
-  const r = await fetch(p, { headers:{ "Content-Type":"application/json" }, ...(opts || {}) });
+  let r;
+  try {
+    r = await fetch(p, { headers:{ "Content-Type":"application/json" }, ...(opts || {}) });
+  } catch {
+    /* The server went away mid-request. Say so plainly rather than leaving a
+     * button that looks like it did nothing. */
+    throw new Error("Cannot reach the Meridian server. Is it still running?");
+  }
+  /* Sessions live in memory, so restarting the server signs everyone out. A page
+   * left open then fails on every action; bounce to the login instead. */
+  if (r.status === 401){
+    location.href = "/login.html?expired=1";
+    throw new Error("Session expired.");
+  }
   const body = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(body.error || (r.status + " " + r.statusText));
   return body;

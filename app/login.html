@@ -43,7 +43,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="mark" aria-hidden="true">M</div>
   <div>
     <h1>Meridian</h1>
-    <p>This console holds live account data. Sign in to continue.</p>
+    <p id="why">This console holds live account data. Sign in to continue.</p>
   </div>
   <div>
     <label for="pw">Password</label>
@@ -55,6 +55,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </form>
 <script>
 const f = document.getElementById("f"), err = document.getElementById("err"), go = document.getElementById("go");
+if (new URLSearchParams(location.search).has("expired"))
+  document.getElementById("why").textContent =
+    "Your session ended, which happens whenever the server restarts. Sign in again to carry on.";
 f.addEventListener("submit", async e => {
   e.preventDefault();
   err.textContent = ""; go.disabled = true; go.textContent = "Checking…";
