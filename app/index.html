@@ -738,7 +738,7 @@ details[open] summary::before{content:"\2212 "}
     <div class="ch">
       <div>
         <h3>Net worth</h3>
-        <p class="sub">Assets minus liabilities, rebuilt on every sync</p>
+        <p class="sub" id="nwSub">Assets minus liabilities, rebuilt on every sync</p>
       </div>
       <div class="ch-sp"></div>
       <div class="seg g" id="nwRange" role="group" aria-label="Time range">
@@ -747,6 +747,8 @@ details[open] summary::before{content:"\2212 "}
         <button aria-pressed="true" data-r="1Y">1Y</button>
         <button aria-pressed="false" data-r="5Y">5Y</button>
         <button aria-pressed="false" data-r="ALL">All</button>
+        <button aria-pressed="false" data-r="F10">+10y</button>
+        <button aria-pressed="false" data-r="F30">+30y</button>
       </div>
     </div>
 
@@ -1207,7 +1209,11 @@ function buildDaily(){
 }
 let DAILY = buildDaily();
 
-const RANGES = { "1M":{days:31,step:1}, "6M":{days:183,step:4}, "1Y":{days:365,step:7}, "5Y":{days:1826,step:30}, "ALL":{days:99999,step:30} };
+const RANGES = { "1M":{days:31,step:1}, "6M":{days:183,step:4}, "1Y":{days:365,step:7},
+                 "5Y":{days:1826,step:30}, "ALL":{days:99999,step:30},
+                 /* Forward ranges keep the recorded history and append the same
+                    projection the trajectory uses, so the two cannot disagree. */
+                 "F10":{days:99999,step:30,forward:10}, "F30":{days:99999,step:30,forward:30} };
 
 let ACCOUNTS = {
   cash:[
@@ -1312,12 +1318,28 @@ function fitChart(svg, box, height){
   return w;
 }
 
+/* The projection here is not a second model: it is fv() on the securities
+   balance plus altsAt(), which is exactly what the trajectory chart plots. An
+   exit therefore lands on the same date in both, and its proceeds compound at
+   the base return from that point -- reinvested, not parked. */
+function forwardSeries(years){
+  const bp = scParams("base");
+  const out = [];
+  const start = new Date();
+  for (let y = 0.25; y <= years + 0.001; y += 0.25){
+    const d = new Date(start.getFullYear(), start.getMonth() + Math.round(y * 12), start.getDate());
+    out.push({ d, v: fv(INVESTED, bp.c, bp.r, y) + altsAt(y, bp.r), future: true });
+  }
+  return out;
+}
+
 function drawNW(key, animate){
-  const data = sampleRange(key);
+  const fwd = RANGES[key]?.forward;
+  const data = fwd ? [...sampleRange("ALL"), ...forwardSeries(fwd)] : sampleRange(key);
   const H = Math.round(Math.min(190, Math.max(140, innerHeight * 0.19)));
   const W = fitChart(nwSvg, nwBox, H);
   const PL=44, PR=8, PT=14, PB=22;
-  if (data.length < 2){
+  if (data.length < 2 && !fwd){
     nwSvg.innerHTML = `<text x="${W/2}" y="${H/2-6}" text-anchor="middle" class="axis-tx" style="font-size:12px;fill:var(--t2)">Net worth history starts building today.</text>`
       + `<text x="${W/2}" y="${H/2+14}" text-anchor="middle" class="axis-tx">One point is recorded each time you sync.</text>`;
     nwTip.classList.remove("on");
@@ -1326,13 +1348,23 @@ function drawNW(key, animate){
   const vs = data.map(p=>p.v);
   let min = Math.min(...vs), max = Math.max(...vs);
   const pad = (max-min)*0.16 || max*0.05;
+  /* Padding below the lowest point can drop the axis under zero on a wide
+     range, which reads as debt that does not exist. */
+  const allPositive = min >= 0;
   min -= pad; max += pad;
+  if (allPositive) min = Math.max(0, min);
   const x = i => PL + (i/(data.length-1))*(W-PL-PR);
   const y = v => PT + (1-(v-min)/(max-min))*(H-PT-PB);
   nwPts = data.map((p,i)=>({x:x(i), y:y(p.v), ...p}));
 
-  const line = nwPts.map((p,i)=>(i?"L":"M")+p.x.toFixed(1)+" "+p.y.toFixed(1)).join(" ");
-  const area = line + ` L${nwPts[nwPts.length-1].x.toFixed(1)} ${H-PB} L${PL} ${H-PB} Z`;
+  const firstFuture = nwPts.findIndex(p => p.future);
+  const histPts = firstFuture === -1 ? nwPts : nwPts.slice(0, firstFuture);
+  const futPts  = firstFuture === -1 ? [] : nwPts.slice(Math.max(0, firstFuture - 1));
+  const toPath = pts => pts.map((p,i)=>(i?"L":"M")+p.x.toFixed(1)+" "+p.y.toFixed(1)).join(" ");
+  const line = toPath(histPts.length > 1 ? histPts : nwPts);
+  const futLine = futPts.length > 1 ? toPath(futPts) : "";
+  const areaPts = futPts.length ? nwPts : histPts;
+  const area = toPath(areaPts) + ` L${areaPts[areaPts.length-1].x.toFixed(1)} ${H-PB} L${PL} ${H-PB} Z`;
 
   let grid = "", ylab = "";
   for (let i=0;i<=3;i++){
@@ -1344,13 +1376,15 @@ function drawNW(key, animate){
   const ticks = 4;
   for (let i=0;i<=ticks;i++){
     const idx = Math.round((data.length-1)*(i/ticks)), p = data[idx];
-    const lab = key==="1M" ? p.d.getDate()+" "+MONTHS[p.d.getMonth()]
+    const lab = fwd ? String(p.d.getFullYear())
+              : key==="1M" ? p.d.getDate()+" "+MONTHS[p.d.getMonth()]
               : key==="5Y"||key==="ALL" ? MONTHS[p.d.getMonth()]+" '"+String(p.d.getFullYear()).slice(2)
               : MONTHS[p.d.getMonth()];
     xlab += `<text class="axis-tx" x="${x(idx).toFixed(1)}" y="${H-6}" text-anchor="${i===0?"start":i===ticks?"end":"middle"}">${lab}</text>`;
   }
 
   const last = nwPts[nwPts.length-1];
+  const lastIsFuture = Boolean(last.future);
   nwSvg.innerHTML = `
     <defs><linearGradient id="nwFill" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#D4AF61" stop-opacity=".26"/>
@@ -1359,6 +1393,9 @@ function drawNW(key, animate){
     ${grid}${ylab}${xlab}
     <path d="${area}" fill="url(#nwFill)"/>
     <path id="nwLine" class="pth" d="${line}" stroke="#D4AF61"/>
+    ${futLine ? `<path class="pth" d="${futLine}" stroke="#D4AF61" stroke-dasharray="5 4" opacity=".75"/>` : ""}
+    ${futPts.length ? `<line x1="${futPts[0].x.toFixed(1)}" y1="${PT}" x2="${futPts[0].x.toFixed(1)}" y2="${H-PB}" stroke="#ECF2EF" stroke-width="1" opacity=".28"/>
+      <text class="axis-tx" x="${(futPts[0].x + 4).toFixed(1)}" y="${PT + 9}" style="fill:#ECF2EF;opacity:.55">today</text>` : ""}
     <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3.4" fill="#D4AF61"/>
     <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="7" fill="#D4AF61" opacity=".2"/>
     <g id="nwHover" style="display:none">
@@ -1373,6 +1410,10 @@ function drawNW(key, animate){
     path.animate([{strokeDashoffset:len},{strokeDashoffset:0}],
       {duration:900, easing:"cubic-bezier(.23,1,.32,1)", fill:"forwards"});
   }
+  const nwSub = $("#nwSub");
+  if (nwSub) nwSub.textContent = fwd
+    ? `Recorded history, then the base case ahead \u2014 every exit reinvested at ${pct(P.ret*100)}`
+    : "Assets minus liabilities, rebuilt on every sync";
   attachHover();
 }
 
@@ -1389,10 +1430,12 @@ function attachHover(){
     nwTip.classList.add("on");
     nwTip.style.left = (p.x/720*r.width) + "px";
     nwTip.style.top  = (p.y/240*r.height) + "px";
-    $("#nwTipL").textContent = p.d.getDate()+" "+MONTHS[p.d.getMonth()]+" "+p.d.getFullYear();
+    $("#nwTipL").textContent = (p.future ? "Projected \u00b7 " : "") + p.d.getDate()+" "+MONTHS[p.d.getMonth()]+" "+p.d.getFullYear();
     $("#nwTipV").textContent = usd(Math.round(p.v));
     const prev = nwPts[0].v, dl = p.v - prev;
-    $("#nwTipR").innerHTML = `<span style="color:${dl>=0?"var(--em)":"var(--rose)"}">${dl>=0?"+":""}${usd(Math.round(dl))}</span> over range`;
+    $("#nwTipR").innerHTML = p.future
+      ? `Base case &middot; exits reinvested at ${pct(P.ret*100)}`
+      : `<span style="color:${dl>=0?"var(--em)":"var(--rose)"}">${dl>=0?"+":""}${usd(Math.round(dl))}</span> over range`;
   };
   hit.addEventListener("pointermove", move);
   hit.addEventListener("pointerleave", ()=>{ grp.style.display="none"; nwTip.classList.remove("on"); });
