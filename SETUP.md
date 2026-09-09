@@ -127,3 +127,47 @@ server/verify.js         credential check and sandbox seeder
 You pasted your `client_id` and secret into chat. I have not written them into any file — API keys are the one class of value I don't handle directly, regardless of who asks, which is why `.env` is blank and step 2 is yours.
 
 More usefully: **that secret should now be treated as compromised and rotated.** It exists in a chat transcript. Plaid lets you roll a secret from Developers → Keys, and rotating it invalidates the old one immediately. Do that first, then paste the new one into `.env`.
+
+---
+
+## Reaching the dashboard from another device
+
+The server binds to `127.0.0.1` and needs no password there, because nothing off
+the machine can reach it. Exposing it changes that, so the rules change too:
+
+**If `HOST` is anything other than a loopback address, `MERIDIAN_PASSWORD` is
+mandatory and the process refuses to start without it.** Publishing real balances
+unauthenticated should not be possible by forgetting a setting.
+
+### Cloudflare Tunnel (a link that works anywhere)
+
+Start the server:
+
+```
+cd server
+npm start
+```
+
+Then, in a second terminal:
+
+```
+cloudflared tunnel --url http://127.0.0.1:4800
+```
+
+It prints a `https://<name>.trycloudflare.com` address. Your data never moves --
+the tunnel only forwards to localhost -- and closing the tunnel kills the link.
+The password gate stands in front of it. The address changes on every run.
+
+### What protects it
+
+- Session cookie is `HttpOnly`, `SameSite=Strict`, and `Secure` when off loopback
+- Sessions are in memory only, so restarting the server signs everyone out
+- Password compared in constant time, with a fixed delay on failure
+- `X-Robots-Tag: noindex, nofollow, noarchive` on every response
+- `X-Frame-Options`, `X-Content-Type-Options` and `Referrer-Policy` set
+
+### Why not GitHub Pages
+
+Pages is public static hosting. It cannot run the server, and anything placed
+there is world-readable and gets crawled and cached. The Pages site serves the
+fixture demo only, and must never serve real account data.

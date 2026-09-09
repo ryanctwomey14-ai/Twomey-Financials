@@ -13,6 +13,7 @@ import { Configuration, PlaidApi, PlaidEnvironments, Products, CountryCode } fro
 import * as store from "./store.js";
 import { buildState } from "./normalize.js";
 import { fetchPrices } from "./prices.js";
+import * as auth from "./auth.js";
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4800);
@@ -37,8 +38,24 @@ const plaid = configured
     }))
   : null;
 
+const AUTH = auth.preflight();
+
 const app = express();
+app.disable("x-powered-by");
 app.use(express.json({ limit: "4mb" }));
+
+/* Anything holding real balances should never be indexed or framed. */
+app.use((req, res, next) => {
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+  next();
+});
+
+app.post("/api/login", auth.login);
+app.post("/api/logout", auth.logout);
+app.use(auth.middleware);
 app.use(express.static(path.join(DIR, "..", "app")));
 
 app.use("/api", (req, res, next) => {
@@ -94,6 +111,7 @@ const strayItems = () => store.read().items.filter(i => (i.env || "sandbox") !==
 app.get("/api/health", (req, res) => {
   const s = store.read();
   res.json({
+    auth: auth.status(),
     configured, env: ENV,
     clientIdTail: CLIENT_ID ? "…" + CLIENT_ID.slice(-4) : null,
     items: liveItems().length,
@@ -634,9 +652,10 @@ app.post("/api/manual-assets", (req, res) => {
 });
 
 /* ---------------- boot ---------------- */
-app.listen(PORT, "127.0.0.1", () => {
+app.listen(PORT, AUTH.host, () => {
   const stray = strayItems();
-  console.log(`\n  Meridian  →  http://127.0.0.1:${PORT}`);
+  console.log(`\n  Meridian  →  http://${AUTH.loopback ? "127.0.0.1" : AUTH.host}:${PORT}`);
+  console.log(`  Auth:      ${AUTH.enabled ? "password required" : "open — loopback only"}`);
   console.log(`  Plaid env: ${ENV}${configured ? `  (client …${CLIENT_ID.slice(-4)})` : "   keys missing — add server/.env"}`);
   console.log(`  Products:  ${REQUIRED.join(", ")}${OPTIONAL.length ? `  (optional: ${OPTIONAL.join(", ")})` : ""}`);
   console.log(`  Linked:    ${liveItems().length} institution(s) in ${ENV}`);

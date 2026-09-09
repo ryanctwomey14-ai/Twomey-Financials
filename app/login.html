@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Meridian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Bodoni+Moda:opsz,wght@6..96,500&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#0A0D0F;--card:rgba(255,255,255,.045);--line:rgba(228,244,239,.085);
+  --t0:#ECF2EF;--t1:#9EACA7;--t2:#6C7A75;--gold:#D4AF61;--rose:#F2766B}
+*{box-sizing:border-box}
+body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:24px;
+  background:var(--bg);color:var(--t0);font-family:Archivo,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(800px 420px at 20% -10%,rgba(212,175,97,.10),transparent 62%),
+             radial-gradient(700px 400px at 85% 105%,rgba(61,214,140,.05),transparent 60%)}
+.box{position:relative;width:100%;max-width:340px;display:flex;flex-direction:column;gap:16px;
+  padding:26px;border-radius:16px;border:1px solid var(--line);
+  background:linear-gradient(180deg,var(--card),rgba(255,255,255,.015));
+  backdrop-filter:blur(18px);box-shadow:0 1px 0 rgba(255,255,255,.07) inset,0 30px 60px -30px #000}
+.mark{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+  background:linear-gradient(150deg,#D4AF61,#8E7434);color:#0A0D0F;
+  font-family:"Bodoni Moda",Georgia,serif;font-weight:500;font-size:19px;line-height:1}
+h1{margin:0;font-size:17px;font-weight:600;letter-spacing:-.02em}
+p{margin:0;font-size:12px;color:var(--t2);line-height:1.5}
+label{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--t2);display:block;margin-bottom:6px}
+input{width:100%;height:40px;padding:0 12px;border-radius:9px;border:1px solid var(--line);
+  background:rgba(0,0,0,.32);color:var(--t0);font:inherit;font-size:14px;color-scheme:dark}
+input:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+button{width:100%;height:40px;border:0;border-radius:9px;cursor:pointer;
+  font:inherit;font-size:13px;font-weight:600;color:#0A0D0F;
+  background:linear-gradient(160deg,#E0BC6E,#B08F42)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.err{font-size:12px;color:var(--rose);min-height:16px}
+.foot{font-size:10.5px;color:var(--t2);line-height:1.5;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head><body>
+<form class="box" id="f" autocomplete="on">
+  <div class="mark" aria-hidden="true">M</div>
+  <div>
+    <h1>Meridian</h1>
+    <p>This console holds live account data. Sign in to continue.</p>
+  </div>
+  <div>
+    <label for="pw">Password</label>
+    <input id="pw" name="password" type="password" autocomplete="current-password" required autofocus>
+  </div>
+  <div class="err" id="err" role="alert"></div>
+  <button id="go" type="submit">Sign in</button>
+  <p class="foot">Balances and transactions stay on the machine running this server. Nothing is uploaded.</p>
+</form>
+<script>
+const f = document.getElementById("f"), err = document.getElementById("err"), go = document.getElementById("go");
+f.addEventListener("submit", async e => {
+  e.preventDefault();
+  err.textContent = ""; go.disabled = true; go.textContent = "Checking…";
+  try {
+    const r = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: document.getElementById("pw").value })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) { location.href = "/index.html"; return; }
+    err.textContent = j.error || "Sign-in failed.";
+  } catch { err.textContent = "Could not reach the server."; }
+  go.disabled = false; go.textContent = "Sign in";
+  document.getElementById("pw").select();
+});
+</script>
+</body></html>
