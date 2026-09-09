@@ -289,14 +289,46 @@ async function syncItem(itemId) {
   };
 }
 
+/* Ask the institution for fresh data before reading it.
+ *
+ * transactionsSync returns what Plaid last pulled, which can lag the bank by
+ * most of a day -- four brokerage transfers were posted and visible in the bank
+ * app while sync kept reporting nothing added. transactionsRefresh forces the
+ * pull. It costs a request per item, so it is throttled and only runs on a sync
+ * the user asked for; there is no background poller here.
+ *
+ * Failure is not fatal. Some institutions do not support on-demand refresh, and
+ * a stale read is still better than a failed sync. */
+const REFRESH_EVERY_MS = 4 * 60 * 1000;
+const lastRefresh = new Map();
+
+async function refreshItem(item) {
+  const prev = lastRefresh.get(item.itemId) || 0;
+  if (Date.now() - prev < REFRESH_EVERY_MS) return "throttled";
+  try {
+    await plaid.transactionsRefresh({ access_token: store.itemToken(item) });
+    lastRefresh.set(item.itemId, Date.now());
+    return "refreshed";
+  } catch (e) {
+    return errOf(e)?.error_code || "refresh failed";
+  }
+}
+
 app.post("/api/sync", async (req, res) => {
   if (!plaid) return res.status(503).json({ error: "Plaid keys are not configured." });
   const items = liveItems();
   if (!items.length) return res.json({ items: 0, results: [] });
+
+  /* Refresh every item first, then read. Done in one pass so the institutions
+   * are all working while we wait, rather than one at a time. */
+  const refreshed = Object.fromEntries(await Promise.all(
+    items.map(async item => [item.itemId, await refreshItem(item)])));
+
   const results = [];
   for (const item of items) {
     try {
-      results.push({ itemId: item.itemId, institution: item.institutionName, ...(await syncItem(item.itemId)) });
+      results.push({ itemId: item.itemId, institution: item.institutionName,
+                     refresh: refreshed[item.itemId], ...(await syncItem(item.itemId)) });
     } catch (e) {
       const code = errOf(e)?.error_code || null;
       store.update(st => {
