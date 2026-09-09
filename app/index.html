@@ -936,19 +936,19 @@ details[open] summary::before{content:"\2212 "}
         <!-- controls -->
         <div style="display:flex;flex-direction:column;gap:15px;min-width:0">
           <div class="ctrl">
-            <div class="ctrl-top"><span class="lbl">Monthly contribution</span><span class="ctrl-val" id="vContrib">$4,200</span></div>
-            <input type="range" id="sContrib" min="500" max="9000" step="100" value="4200" aria-label="Monthly contribution">
+            <div class="ctrl-top"><span class="lbl">Monthly contribution</span><span class="ctrl-val" id="vContrib">$5,000</span></div>
+            <input type="range" id="sContrib" min="500" max="9000" step="100" value="5000" aria-label="Monthly contribution">
             <p class="sub" style="font-size:10.5px;color:var(--t3)">Base case. Worst runs at 67%, best at 133%.</p>
           </div>
           <div class="ctrl">
-            <div class="ctrl-top"><span class="lbl">Base annual return</span><span class="ctrl-val" id="vReturn">7.5%</span></div>
-            <input type="range" id="sReturn" min="3" max="12" step="0.1" value="7.5" aria-label="Base annual return">
+            <div class="ctrl-top"><span class="lbl">Base annual return</span><span class="ctrl-val" id="vReturn">10.0%</span></div>
+            <input type="range" id="sReturn" min="3" max="12" step="0.1" value="10" aria-label="Base annual return">
             <p class="sub" style="font-size:10.5px;color:var(--t3)">Real, after inflation. Worst &minus;3.0pt, best +2.0pt.</p>
           </div>
           <div class="ctrl">
-            <div class="ctrl-top"><span class="lbl">Target</span><span class="ctrl-val" id="vGoal">$3.2M</span></div>
-            <input type="range" id="sGoal" min="500000" max="8000000" step="50000" value="3200000" aria-label="Target net worth">
-            <p class="sub" style="font-size:10.5px;color:var(--t3)">25&times; a $128k retirement spend.</p>
+            <div class="ctrl-top"><span class="lbl">Target</span><span class="ctrl-val" id="vGoal">$1.00M</span></div>
+            <input type="range" id="sGoal" min="500000" max="8000000" step="50000" value="1000000" aria-label="Target net worth">
+            <p class="sub" style="font-size:10.5px;color:var(--t3)" id="goalNote">25&times; a $40k retirement spend.</p>
           </div>
 
           <div class="rule"></div>
@@ -966,11 +966,11 @@ details[open] summary::before{content:"\2212 "}
             <div class="tip" id="projTip"><div class="tl" id="projTipL">&mdash;</div><div class="tv" id="projTipV">&mdash;</div><div class="tr" id="projTipR"></div></div>
           </div>
           <div class="seg g" id="horizonTabs" role="group" aria-label="Horizon" style="align-self:flex-start">
-            <button aria-pressed="false" data-h="5">5 yr</button>
+            <button aria-pressed="true" data-h="5">5 yr</button>
             <button aria-pressed="false" data-h="10">10 yr</button>
             <button aria-pressed="false" data-h="15">15 yr</button>
             <button aria-pressed="false" data-h="20">20 yr</button>
-            <button aria-pressed="true" data-h="30">30 yr</button>
+            <button aria-pressed="false" data-h="30">30 yr</button>
           </div>
         </div>
       </div>
@@ -1994,7 +1994,7 @@ const requiredMonthly = (target, p, r, yrs) => {
   return Math.max(0, (target - p*g) * i / (g-1));
 };
 
-const P = { contrib:4200, ret:.075, goal:3200000, horizon:30, on:{worst:true,base:true,best:true} };
+const P = { contrib:5000, ret:.10, goal:1000000, horizon:5, on:{worst:true,base:true,best:true} };
 const GOAL_YEARS = 18;
 const SC = {
   worst:{c:.67, r:-.03, col:"#7F8F8A", label:"Worst"},
@@ -2214,7 +2214,14 @@ function renderGoalBand(bp, hitYear){
 const bindRange = (id, fn) => { const el=$(id); el.addEventListener("input", ()=>{ fn(el); drawProj(false); }); };
 bindRange("#sContrib", el => { P.contrib = +el.value; $("#vContrib").textContent = usd(P.contrib); });
 bindRange("#sReturn",  el => { P.ret = +el.value/100; $("#vReturn").textContent = pct(+el.value); });
-bindRange("#sGoal",    el => { P.goal = +el.value; $("#vGoal").textContent = short(P.goal); });
+bindRange("#sGoal",    el => { P.goal = +el.value; $("#vGoal").textContent = short(P.goal); goalNote(); });
+
+/* The 25x caption was written against a fixed target, so it went stale the
+   moment the slider moved. Derive it instead. */
+function goalNote(){
+  const n = $("#goalNote");
+  if (n) n.innerHTML = `25&times; a ${short(P.goal / 25)} retirement spend.`;
+}
 
 $("#horizonTabs").addEventListener("click", e => {
   const b = e.target.closest("button"); if(!b) return;
@@ -2621,6 +2628,7 @@ function applyState(S){
 
   const st = S.settings || {};
   if (st.goal)          { P.goal = st.goal;        $("#sGoal").value = st.goal;                    $("#vGoal").textContent = short(st.goal); }
+  goalNote();
   if (st.baseReturn)    { P.ret = st.baseReturn;   $("#sReturn").value = (st.baseReturn*100).toFixed(1); $("#vReturn").textContent = pct(st.baseReturn*100); }
   if (st.contribution)  { P.contrib = st.contribution; $("#sContrib").value = st.contribution;     $("#vContrib").textContent = usd(st.contribution); }
 
@@ -2740,6 +2748,7 @@ renderNwStats();
 renderHoldings();
 $("#vContrib").textContent = usd(P.contrib);
 $("#vReturn").textContent  = pct(P.ret*100);
+goalNote();
 $("#vGoal").textContent    = short(P.goal);
 drawProj(true);
 renderPromoClocks();

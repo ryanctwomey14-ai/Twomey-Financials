@@ -67,10 +67,10 @@ const BLANK = {
     Utilities: 240, Travel: 600, "Everything else": 300
   },
   settings: {
-    goal: 3200000,
+    goal: 1000000,
     goalYears: 18,
-    contribution: 4200,
-    baseReturn: 0.075,
+    contribution: 5000,
+    baseReturn: 0.10,
     extraDebtPayment: 954,
     emergencyMonths: 6,
     ignoredLeaks: [],
