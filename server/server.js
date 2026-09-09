@@ -9,6 +9,7 @@ import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import nodeCrypto from "node:crypto";
 import { Configuration, PlaidApi, PlaidEnvironments, Products, CountryCode } from "plaid";
 import * as store from "./store.js";
 import { buildState } from "./normalize.js";
@@ -493,7 +494,14 @@ app.post("/api/transactions/:id/restore", (req, res) => {
 });
 
 /* ---------------- illiquid holdings ---------------- */
-const slug = n => String(n).toLowerCase().replace(/\W+/g, "-").replace(/^-|-$/g, "") || "item";
+/* Identity must not come from the name.
+ *
+ * Deriving an id from the name meant two holdings called the same thing -- two
+ * notes from the same lender, two positions in the same deal -- produced the
+ * same id, and the second silently replaced the first. New records get a random
+ * id; an upsert only happens when the caller sends an id back, which is what
+ * editing an existing row does. */
+const newId = prefix => `${prefix}_${nodeCrypto.randomBytes(6).toString("hex")}`;
 
 app.post("/api/real-estate", (req, res) => {
   const b = req.body || {};
@@ -501,7 +509,7 @@ app.post("/api/real-estate", (req, res) => {
   if (!["gp", "lp"].includes(b.kind)) return res.status(400).json({ error: 'kind must be "gp" or "lp".' });
   const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
   const rec = {
-    id: b.id || slug(b.name) + "-" + slug(b.kind),
+    id: b.id || newId(b.kind === "gp" ? "gp" : "lp"),
     kind: b.kind,
     name: b.name.trim(),
     invested: num(b.invested),
@@ -532,7 +540,7 @@ app.post("/api/notes", (req, res) => {
   if (!b.name?.trim()) return res.status(400).json({ error: "Give the note a name." });
   const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
   const rec = {
-    id: b.id || slug(b.name) + "-note",
+    id: b.id || newId("note"),
     name: b.name.trim(),
     borrower: (b.borrower || "").trim(),
     principal: num(b.principal),
@@ -593,7 +601,7 @@ app.post("/api/crypto", async (req, res) => {
   if (!b.name?.trim() && !b.symbol?.trim()) return res.status(400).json({ error: "Give the holding a name or symbol." });
   const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
   const rec = {
-    id: b.id || slug(b.symbol || b.name) + "-crypto",
+    id: b.id || newId("coin"),
     name: (b.name || b.symbol).trim(),
     symbol: (b.symbol || "").trim().toUpperCase(),
     quantity: num(b.quantity),
@@ -627,7 +635,7 @@ app.post("/api/properties", (req, res) => {
   if (!b.name?.trim()) return res.status(400).json({ error: "Give the property a name." });
   const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
   const rec = {
-    id: b.id || slug(b.name),
+    id: b.id || newId("prop"),
     name: b.name.trim(),
     value: num(b.value),
     appreciationRate: num(b.appreciationRate, 0.03),
@@ -657,7 +665,7 @@ app.post("/api/manual-assets", (req, res) => {
   const { id, name, value, kind } = req.body || {};
   if (!name) return res.status(400).json({ error: "name is required." });
   store.update(s => {
-    const key = id || name.toLowerCase().replace(/\W+/g, "-");
+    const key = id || newId("asset");
     const rec = { id: key, name, value: Number(value) || 0, kind: kind || "asset", updated: new Date().toISOString().slice(0, 10) };
     const i = s.manualAssets.findIndex(m => m.id === key);
     if (i >= 0) s.manualAssets[i] = rec; else s.manualAssets.push(rec);
