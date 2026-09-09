@@ -328,8 +328,14 @@ function assemble() {
 }
 
 function snapshotNow() {
-  const st = assemble();
-  store.recordSnapshot(st.totals.assets, st.totals.liabilities);
+  try {
+    const st = assemble();
+    store.recordSnapshot(st.totals.assets, st.totals.liabilities);
+  } catch (e) {
+    /* A snapshot is a nice-to-have. Never let one fail the request that
+     * triggered it, and never let it take the server down. */
+    console.error("[snapshot]", e.message);
+  }
 }
 
 app.get("/api/state", (req, res) => {
@@ -647,6 +653,11 @@ app.post("/api/manual-assets", (req, res) => {
   });
   res.json(store.read().manualAssets);
 });
+
+/* A finance dashboard going dark because a virus scanner held a file for 20ms
+ * is not acceptable. Log it and keep serving. */
+process.on("uncaughtException", e => console.error("[uncaught]", e.stack || e.message));
+process.on("unhandledRejection", e => console.error("[unhandled]", e?.stack || e));
 
 /* ---------------- boot ---------------- */
 app.listen(PORT, AUTH.host, () => {

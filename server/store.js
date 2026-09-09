@@ -94,11 +94,45 @@ export function read() {
   return cache;
 }
 
+/* Write atomically where the OS allows it.
+ *
+ * On Windows a rename fails with EPERM whenever anything else holds the target
+ * open for even a moment -- Defender, the search indexer and OneDrive all do
+ * this to files under Documents. The rename is still worth attempting, because
+ * it is the only way to guarantee a reader never sees a half-written store, but
+ * a transient lock must not lose the write and must never take down the server.
+ */
+const RETRYABLE = new Set(["EPERM", "EACCES", "EBUSY"]);
+
 export function write(next) {
   cache = next ?? cache;
+  const body = JSON.stringify(cache, null, 2);
   const tmp = STORE + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(cache, null, 2), { mode: 0o600 });
-  fs.renameSync(tmp, STORE);           // atomic — never leaves a half-written store
+
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      fs.writeFileSync(tmp, body, { mode: 0o600 });
+      fs.renameSync(tmp, STORE);
+      return cache;
+    } catch (e) {
+      if (!RETRYABLE.has(e.code) || attempt === 5) {
+        /* Last resort: write in place. Briefly non-atomic, but losing the write
+         * outright is worse than a reader catching a partial file. */
+        try {
+          fs.writeFileSync(STORE, body, { mode: 0o600 });
+          try { fs.unlinkSync(tmp); } catch {}
+          console.warn(`[store] rename blocked (${e.code}); wrote in place instead`);
+          return cache;
+        } catch (fatal) {
+          console.error("[store] could not persist:", fatal.message);
+          throw fatal;                 // the caller decides; the process stays up
+        }
+      }
+      /* Back off briefly and try again -- these locks last milliseconds. */
+      const until = Date.now() + 15 * (attempt + 1);
+      while (Date.now() < until) { /* spin: writes are rare and must stay sync */ }
+    }
+  }
   return cache;
 }
 
