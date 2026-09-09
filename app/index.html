@@ -1,4 +1,4 @@
-<title>Meridian Wealth Console</title>
+<title>Twomey Household Wealth Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,700&family=JetBrains+Mono:wght@400;500;600&display=swap">
@@ -642,7 +642,7 @@ details[open] summary::before{content:"\2212 "}
 
 <!-- ============ LEFT RAIL ============ -->
 <nav class="rail" aria-label="Primary">
-  <div class="rail-mark" aria-hidden="true">M</div>
+  <div class="rail-mark" aria-hidden="true">T</div>
   <button class="rail-btn" aria-current="page" data-go="top"><svg><use href="#i-grid"/></svg><span class="rail-tip">Overview</span><span class="sr">Overview</span></button>
   <button class="rail-btn" data-go="accounts"><svg><use href="#i-wallet"/></svg><span class="rail-tip">Accounts</span><span class="sr">Accounts</span></button>
   <button class="rail-btn" data-go="leaks"><svg><use href="#i-scissors"/></svg><span class="rail-tip">Money leaks</span><span class="sr">Money leaks</span></button>
@@ -828,7 +828,7 @@ details[open] summary::before{content:"\2212 "}
 
     <div class="note gold">
       <svg><use href="#i-alert"/></svg>
-      <div>Both cards are <b>standard</b> 0% promos &mdash; interest starts fresh at expiry. Meridian re-checks the promo type on every statement, because a <b>deferred-interest</b> card would charge all 12 months back at once.</div>
+      <div>Both cards are <b>standard</b> 0% promos &mdash; interest starts fresh at expiry. Twomey Household re-checks the promo type on every statement, because a <b>deferred-interest</b> card would charge all 12 months back at once.</div>
     </div>
   </div>
 </section>
@@ -1004,7 +1004,7 @@ details[open] summary::before{content:"\2212 "}
         </div>
         <div class="disclosure">
           <svg><use href="#i-alert"/></svg>
-          <div><b>These are arithmetic, not advice.</b> Returns are your assumptions compounded forward &mdash; not a forecast, not a recommendation, and no allowance for taxes, fees, or sequence risk. Meridian is not a registered investment adviser.</div>
+          <div><b>These are arithmetic, not advice.</b> Returns are your assumptions compounded forward &mdash; not a forecast, not a recommendation, and no allowance for taxes, fees, or sequence risk. Twomey Household is not a registered investment adviser.</div>
         </div>
       </div>
     </div>
@@ -1070,7 +1070,7 @@ details[open] summary::before{content:"\2212 "}
   <div class="sec-head" style="margin-bottom:12px">
     <div>
       <h2>How the data gets here</h2>
-      <p>Meridian holds a read-only token, never a credential. The handoff happens inside Plaid Link, on Plaid's own origin.</p>
+      <p>The console holds a read-only token, never a credential. The handoff happens inside Plaid Link, on Plaid's own origin.</p>
     </div>
   </div>
 
@@ -1078,7 +1078,7 @@ details[open] summary::before{content:"\2212 "}
     <div class="trust-card">
       <span class="ti"><svg><use href="#i-lock"/></svg></span>
       <b>Credentials never reach us</b>
-      <p>Plaid Link runs in its own sandboxed frame. You authenticate with your bank; we receive a public token and exchange it server-side for a read-only access token. No password ever crosses Meridian.</p>
+      <p>Plaid Link runs in its own sandboxed frame. You authenticate with your bank; we receive a public token and exchange it server-side for a read-only access token. No password ever crosses Twomey Household.</p>
     </div>
     <div class="trust-card">
       <span class="ti"><svg><use href="#i-shield"/></svg></span>
@@ -1099,11 +1099,11 @@ details[open] summary::before{content:"\2212 "}
 
   <div class="disclosure">
     <svg><use href="#i-alert"/></svg>
-    <div><b>About this build.</b> The interface is complete and the arithmetic is real &mdash; compounding, amortisation, pace projection and promo countdowns all compute live from the controls. Account data is a resident fixture, because a published page cannot reach an external host. The link flow calls a mock adapter that mirrors Plaid's real signatures (<span class="mono">/link/token/create</span> &rarr; <span class="mono">onSuccess(public_token)</span> &rarr; <span class="mono">/item/public_token/exchange</span>), so pointing it at the live SDK is a one-file swap. <b>Meridian is not a registered investment adviser and nothing here is investment advice.</b></div>
+    <div><b>About this build.</b> The interface is complete and the arithmetic is real &mdash; compounding, amortisation, pace projection and promo countdowns all compute live from the controls. Account data is a resident fixture, because a published page cannot reach an external host. The link flow calls a mock adapter that mirrors Plaid's real signatures (<span class="mono">/link/token/create</span> &rarr; <span class="mono">onSuccess(public_token)</span> &rarr; <span class="mono">/item/public_token/exchange</span>), so pointing it at the live SDK is a one-file swap. <b>Twomey Household is not a registered investment adviser and nothing here is investment advice.</b></div>
   </div>
 
   <div class="foot">
-    <span class="wm">Meridian</span>
+    <span class="wm">Twomey</span>
     <span>Wealth Console</span>
     <span class="sep" style="width:1px;height:11px;background:var(--line)"></span>
     <span>Fixture as of 8 Sep 2026</span>
@@ -1128,7 +1128,7 @@ details[open] summary::before{content:"\2212 "}
     <div class="sheet-b" id="linkStage1">
       <div class="note">
         <svg><use href="#i-lock"/></svg>
-        <div>You will sign in on <b>your bank's own page</b> inside Plaid Link. Meridian never sees, stores, or transmits your credentials &mdash; we receive a read-only token when you are done.</div>
+        <div>You will sign in on <b>your bank's own page</b> inside Plaid Link. The console never sees, stores, or transmits your credentials &mdash; we receive a read-only token when you are done.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:9px">
         <button class="btn gold" id="launchLink" style="width:100%;height:42px">
@@ -1136,7 +1136,7 @@ details[open] summary::before{content:"\2212 "}
         </button>
         <p class="sub" style="font-size:11px;color:var(--t3);line-height:1.5">
           Plaid Link opens its own secure window with search across 12,000+ institutions.
-          Meridian receives a read-only token when you finish &mdash; never your login.
+          The console receives a read-only token when you finish &mdash; never your login.
         </p>
         <p class="sub" id="linkErr" style="font-size:11.5px;color:var(--rose);line-height:1.5" hidden></p>
       </div>
@@ -1451,7 +1451,7 @@ function renderAccounts(tab){
         <b style="color:${a.v<0?"var(--rose)":"var(--t0)"}">${usd(a.v)}</b>
         <span${a.crit?' style="color:var(--rose)"':a.vio?' style="color:var(--vio)"':""}>${a.sub}</span>
       </span>
-      ${LIVE && !String(a.id).startsWith("manual:") ? `<button class="icon-btn acct-del" data-acct-hide="${a.id}" title="Remove ${a.name} from Meridian"><svg><use href="#i-x"/></svg><span class="sr">Remove ${a.name}</span></button>` : ""}
+      ${LIVE && !String(a.id).startsWith("manual:") ? `<button class="icon-btn acct-del" data-acct-hide="${a.id}" title="Remove ${a.name} from the console"><svg><use href="#i-x"/></svg><span class="sr">Remove ${a.name}</span></button>` : ""}
       ${canFlag && !String(a.id).startsWith("manual:") ? `<button class="btn sm acct-act" data-promo-set="${a.id}" data-on="${tab === "promo" ? 1 : 0}"
          title="${tab === "promo" ? "This card is not actually on a 0% promotion" : "Plaid did not report a 0% rate on this card, but it is on one"}"
         >${tab === "promo" ? "Not 0%" : "Mark 0%"}</button>` : ""}
@@ -1564,7 +1564,7 @@ function renderBudgetEditor(){
       </div>
       <p class="sub" style="font-size:10.5px;color:var(--t3);line-height:1.5;margin-top:9px">
         Spending lands in a line by category name. The suggestions are the ${KNOWN_CATEGORIES.length} categories
-        Meridian maps transactions into &mdash; a name outside that list stays at $0 spent until something matches it.</p>`;
+        The console maps transactions into &mdash; a name outside that list stays at $0 spent until something matches it.</p>`;
 }
 
 $("#budgetEdit")?.addEventListener("click", () => {
@@ -2276,7 +2276,7 @@ function loadPlaidSdk(){
     const s = document.createElement("script");
     s.src = PLAID_CDN;
     s.onload = () => res(window.Plaid);
-    s.onerror = () => rej(new Error("Could not load Plaid Link. This page must be served by the local Meridian server."));
+    s.onerror = () => rej(new Error("Could not load Plaid Link. This page must be served by the local Twomey Household server."));
     document.head.appendChild(s);
   });
   return plaidSdk;
@@ -2449,7 +2449,7 @@ async function api(p, opts){
   } catch {
     /* The server went away mid-request. Say so plainly rather than leaving a
      * button that looks like it did nothing. */
-    throw new Error("Cannot reach the Meridian server. Is it still running?");
+    throw new Error("Cannot reach the Twomey Household server. Is it still running?");
   }
   /* Sessions live in memory, so restarting the server signs everyone out. A page
    * left open then fails on every action; bounce to the login instead. */

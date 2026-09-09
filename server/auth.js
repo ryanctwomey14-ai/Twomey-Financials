@@ -9,7 +9,9 @@
  */
 import crypto from "node:crypto";
 
-const PASSWORD = process.env.MERIDIAN_PASSWORD || "";
+/* TWOMEY_PASSWORD is the current name; MERIDIAN_PASSWORD is still read so an
+ * existing .env keeps working after the rename. */
+const PASSWORD = process.env.TWOMEY_PASSWORD || process.env.MERIDIAN_PASSWORD || "";
 const HOST = process.env.HOST || "127.0.0.1";
 const LOOPBACK = /^(127\.|::1$|localhost$)/.test(HOST);
 
@@ -43,10 +45,10 @@ export function preflight() {
   Refusing to start.
 
   HOST is set to ${HOST}, which is reachable from outside this machine, but
-  MERIDIAN_PASSWORD is not set. That combination would publish your accounts,
+  TWOMEY_PASSWORD is not set. That combination would publish your accounts,
   balances and transactions to anyone who finds the address.
 
-  Set MERIDIAN_PASSWORD in server/.env, or leave HOST at 127.0.0.1.
+  Set TWOMEY_PASSWORD in server/.env, or leave HOST at 127.0.0.1.
 `);
     process.exit(1);
   }
@@ -60,7 +62,7 @@ export function middleware(req, res, next) {
   if (!PASSWORD) return next();                       // localhost, no password configured
   if (req.path === "/api/login" || req.path === "/login.html") return next();
 
-  const tok = parseCookies(req.headers.cookie).meridian;
+  const tok = parseCookies(req.headers.cookie).twomey;
   if (tok && sessions.has(tok) && sessions.get(tok) > Date.now()) {
     sessions.set(tok, Date.now() + TTL);               // sliding expiry
     return next();
@@ -79,14 +81,14 @@ export function login(req, res) {
   const tok = newToken();
   sessions.set(tok, Date.now() + TTL);
   res.setHeader("Set-Cookie",
-    `meridian=${tok}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${TTL / 1000}${LOOPBACK ? "" : "; Secure"}`);
+    `twomey=${tok}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${TTL / 1000}${LOOPBACK ? "" : "; Secure"}`);
   res.json({ ok: true });
 }
 
 export function logout(req, res) {
-  const tok = parseCookies(req.headers.cookie).meridian;
+  const tok = parseCookies(req.headers.cookie).twomey;
   if (tok) sessions.delete(tok);
-  res.setHeader("Set-Cookie", "meridian=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0");
+  res.setHeader("Set-Cookie", "twomey=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0");
   res.json({ ok: true });
 }
 

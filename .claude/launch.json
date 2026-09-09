@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "meridian",
+      "name": "twomey-household",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start", "--prefix", "server"],
       "port": 4800

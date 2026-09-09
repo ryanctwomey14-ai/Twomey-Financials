@@ -1,4 +1,4 @@
-# Meridian — connecting your real accounts
+# Twomey Household — connecting your real accounts
 
 The dashboard runs in three modes. Only the third one touches your money data.
 
@@ -79,7 +79,7 @@ Worth knowing, because the demo overstated one of these and the live version cor
 
 **It cannot:**
 
-- **Promo end dates.** No aggregator has these; they live in your cardmember agreement. When Meridian detects a 0% rate it opens a clock and asks you for the date once. That is the only number you have to type.
+- **Promo end dates.** No aggregator has these; they live in your cardmember agreement. When The console detects a 0% rate it opens a clock and asks you for the date once. That is the only number you have to type.
 - **Whether you actually use a subscription.** The demo claimed "no app launch in 94 days" — no bank feed knows that. The live leak detector only flags what transaction data can prove: price increases on a recurring charge, two active subscriptions in the same category, and categories running above your own budgeted pace. Everything else is listed as "confirm you still want it" rather than asserted as waste.
 
 ---
@@ -104,7 +104,7 @@ To disconnect an institution, deleting it calls Plaid's `/item/remove`, which in
 | `INVALID_API_KEYS` | Secret is from a different environment than `PLAID_ENV` |
 | "Could not load Plaid Link" | Page opened as a `file://` path or as the artifact instead of through the local server |
 | A product is silently absent | `liabilities` or `investments` not enabled on your Plaid account — the server skips them rather than failing the sync |
-| Net worth chart says "history starts building today" | Correct. Plaid supplies no balance history; Meridian records one snapshot per sync from now on |
+| Net worth chart says "history starts building today" | Correct. Plaid supplies no balance history; The console records one snapshot per sync from now on |
 | Institution shows "needs re-authentication" | Normal Plaid behaviour every few months. Re-link the same institution |
 
 ---
@@ -112,7 +112,7 @@ To disconnect an institution, deleting it calls Plaid's `/item/remove`, which in
 ## File map
 
 ```
-meridian-console.html    the published artifact — fixture only, self-contained
+twomey-console-demo.html    the published artifact — fixture only, self-contained
 app/index.html           the live client
 server/server.js         Express API, 127.0.0.1 only
 server/normalize.js      Plaid shapes -> dashboard shapes
@@ -135,7 +135,7 @@ More usefully: **that secret should now be treated as compromised and rotated.**
 The server binds to `127.0.0.1` and needs no password there, because nothing off
 the machine can reach it. Exposing it changes that, so the rules change too:
 
-**If `HOST` is anything other than a loopback address, `MERIDIAN_PASSWORD` is
+**If `HOST` is anything other than a loopback address, `TWOMEY_PASSWORD` is
 mandatory and the process refuses to start without it.** Publishing real balances
 unauthenticated should not be possible by forgetting a setting.
 

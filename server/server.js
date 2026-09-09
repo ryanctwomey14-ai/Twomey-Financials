@@ -1,5 +1,5 @@
 /**
- * Meridian local server.
+ * Twomey Household local server.
  *
  * Binds to 127.0.0.1 only. Your Plaid secret stays in server/.env, your access
  * tokens stay encrypted in server/data/, and no request from this process goes
@@ -140,8 +140,8 @@ app.post("/api/link/token", async (req, res) => {
   try {
     const { itemId } = req.body || {};
     const base = {
-      user: { client_user_id: "meridian-local-user" },
-      client_name: "Meridian Wealth Console",
+      user: { client_user_id: "twomey-household-local" },
+      client_name: "Twomey Household Wealth Console",
       country_codes: [CountryCode.Us],
       language: "en",
       ...(WEBHOOK ? { webhook: WEBHOOK } : {})
@@ -673,7 +673,7 @@ process.on("unhandledRejection", e => console.error("[unhandled]", e?.stack || e
 /* ---------------- boot ---------------- */
 app.listen(PORT, AUTH.host, () => {
   const stray = strayItems();
-  console.log(`\n  Meridian  →  http://${AUTH.loopback ? "127.0.0.1" : AUTH.host}:${PORT}`);
+  console.log(`\n  Twomey Household  →  http://${AUTH.loopback ? "127.0.0.1" : AUTH.host}:${PORT}`);
   console.log(`  Auth:      ${AUTH.enabled ? "password required" : "open — loopback only"}`);
   console.log(`  Plaid env: ${ENV}${configured ? `  (client …${CLIENT_ID.slice(-4)})` : "   keys missing — add server/.env"}`);
   console.log(`  Products:  ${REQUIRED.join(", ")}${OPTIONAL.length ? `  (optional: ${OPTIONAL.join(", ")})` : ""}`);

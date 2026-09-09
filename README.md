@@ -1,4 +1,4 @@
-# Meridian — Twomey Financials
+# Twomey Household Wealth Console
 
 A personal wealth console: net worth, cash flow, money-leak detection, 0% APR promo
 tracking, and a 30-year projection engine — running against real accounts via Plaid.
@@ -7,7 +7,7 @@ tracking, and a 30-year projection engine — running against real accounts via 
 
 | | What it shows | Where |
 |---|---|---|
-| **`meridian-console.html`** | A worked demo on fictional data. Fully interactive, self-contained, no server. | Open the file, or GitHub Pages |
+| **`twomey-console-demo.html`** | A worked demo on fictional data. Fully interactive, self-contained, no server. | Open the file, or GitHub Pages |
 | **`app/index.html` + `server/`** | **Your real accounts**, live via Plaid. | `localhost` only |
 
 ### The live demo link only shows the demo
@@ -45,7 +45,7 @@ ignore rules before committing.
 ## Layout
 
 ```
-meridian-console.html   self-contained demo (fixture data)
+twomey-console-demo.html   self-contained demo (fixture data)
 app/index.html          the live client
 server/server.js        Express API, binds to 127.0.0.1 only
 server/normalize.js     Plaid shapes -> dashboard shapes

@@ -1,9 +1,9 @@
 {
-  "name": "meridian-server",
+  "name": "twomey-household-console",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Local Plaid integration server for the Meridian Wealth Console. Binds to 127.0.0.1 only.",
+  "description": "Local Plaid integration server for the Twomey Household Wealth Console. Binds to 127.0.0.1 only.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -20,7 +20,7 @@ const ok = m => console.log("  \x1b[32mok\x1b[0m   " + m);
 const no = m => console.log("  \x1b[31mfail\x1b[0m " + m);
 const info = m => console.log("       " + m);
 
-console.log(`\nMeridian credential check — environment: ${ENV}\n`);
+console.log(`\nTwomey Household credential check — environment: ${ENV}\n`);
 
 if (!CLIENT_ID || !SECRET) {
   no("PLAID_CLIENT_ID and PLAID_SECRET are not both set in server/.env");
@@ -68,8 +68,8 @@ try {
   const REQUIRED = (process.env.PLAID_PRODUCTS || "transactions").split(",").map(s => s.trim());
   const OPTIONAL = (process.env.PLAID_OPTIONAL_PRODUCTS || "liabilities,investments").split(",").map(s => s.trim()).filter(Boolean);
   const r = await plaid.linkTokenCreate({
-    user: { client_user_id: "meridian-verify" },
-    client_name: "Meridian Wealth Console",
+    user: { client_user_id: "twomey-household-verify" },
+    client_name: "Twomey Household Wealth Console",
     country_codes: [CountryCode.Us],
     language: "en",
     products: REQUIRED,

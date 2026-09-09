@@ -23,7 +23,7 @@ const ids = new Set(items.map(i => i.itemId));
 const accounts = (s.accounts || []).filter(a => ids.has(a.itemId));
 const txns = (s.transactions || []).filter(t => ids.has(t.itemId));
 
-console.log(`\nMeridian diagnostic — ${ENV}\n`);
+console.log(`\nTwomey Household diagnostic — ${ENV}\n`);
 
 if (!items.length) {
   console.log(r("  No linked items in this environment. Link an institution and sync first.\n"));

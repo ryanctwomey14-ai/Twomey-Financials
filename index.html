@@ -1,4 +1,4 @@
-<title>Meridian Wealth Console</title>
+<title>Twomey Household Wealth Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,700&family=JetBrains+Mono:wght@400;500;600&display=swap">
@@ -599,7 +599,7 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
 
 <!-- ============ LEFT RAIL ============ -->
 <nav class="rail" aria-label="Primary">
-  <div class="rail-mark" aria-hidden="true">M</div>
+  <div class="rail-mark" aria-hidden="true">T</div>
   <button class="rail-btn" aria-current="page" data-go="top"><svg><use href="#i-grid"/></svg><span class="rail-tip">Overview</span><span class="sr">Overview</span></button>
   <button class="rail-btn" data-go="accounts"><svg><use href="#i-wallet"/></svg><span class="rail-tip">Accounts</span><span class="sr">Accounts</span></button>
   <button class="rail-btn" data-go="leaks"><svg><use href="#i-scissors"/></svg><span class="rail-tip">Money leaks</span><span class="sr">Money leaks</span></button>
@@ -710,7 +710,7 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
 
   <div class="trust-strip">
     <svg><use href="#i-lock"/></svg><b>AES-256 at rest, TLS 1.3 in transit</b>
-    <span class="sep"></span><svg><use href="#i-shield"/></svg><b>Read-only tokens</b> &mdash; Meridian cannot move money
+    <span class="sep"></span><svg><use href="#i-shield"/></svg><b>Read-only tokens</b> &mdash; This console cannot move money
     <span class="sep"></span><svg><use href="#i-check"/></svg><b>SOC 2 Type II</b>
     <span class="sep"></span><svg><use href="#i-eye-off"/></svg>Credentials never touch our servers
   </div>
@@ -880,7 +880,7 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
 
     <div class="note gold">
       <svg><use href="#i-alert"/></svg>
-      <div>Both cards are <b>standard</b> 0% promos &mdash; interest starts fresh at expiry. Meridian re-checks the promo type on every statement, because a <b>deferred-interest</b> card would charge all 12 months back at once.</div>
+      <div>Both cards are <b>standard</b> 0% promos &mdash; interest starts fresh at expiry. Twomey Household re-checks the promo type on every statement, because a <b>deferred-interest</b> card would charge all 12 months back at once.</div>
     </div>
   </div>
 </section>
@@ -960,7 +960,7 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
         </div>
         <div class="disclosure">
           <svg><use href="#i-alert"/></svg>
-          <div><b>These are arithmetic, not advice.</b> Returns are your assumptions compounded forward &mdash; not a forecast, not a recommendation, and no allowance for taxes, fees, or sequence risk. Meridian is not a registered investment adviser.</div>
+          <div><b>These are arithmetic, not advice.</b> Returns are your assumptions compounded forward &mdash; not a forecast, not a recommendation, and no allowance for taxes, fees, or sequence risk. Twomey Household is not a registered investment adviser.</div>
         </div>
       </div>
     </div>
@@ -1068,7 +1068,7 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
   <div class="sec-head" style="margin-bottom:12px">
     <div>
       <h2>How the data gets here</h2>
-      <p>Meridian holds a read-only token, never a credential. The handoff happens inside Plaid Link, on Plaid's own origin.</p>
+      <p>The console holds a read-only token, never a credential. The handoff happens inside Plaid Link, on Plaid's own origin.</p>
     </div>
   </div>
 
@@ -1076,7 +1076,7 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
     <div class="trust-card">
       <span class="ti"><svg><use href="#i-lock"/></svg></span>
       <b>Credentials never reach us</b>
-      <p>Plaid Link runs in its own sandboxed frame. You authenticate with your bank; we receive a public token and exchange it server-side for a read-only access token. No password ever crosses Meridian.</p>
+      <p>Plaid Link runs in its own sandboxed frame. You authenticate with your bank; we receive a public token and exchange it server-side for a read-only access token. No password ever crosses Twomey Household.</p>
     </div>
     <div class="trust-card">
       <span class="ti"><svg><use href="#i-shield"/></svg></span>
@@ -1097,11 +1097,11 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
 
   <div class="disclosure">
     <svg><use href="#i-alert"/></svg>
-    <div><b>About this build.</b> The interface is complete and the arithmetic is real &mdash; compounding, amortisation, pace projection and promo countdowns all compute live from the controls. Account data is a resident fixture, because a published page cannot reach an external host. The link flow calls a mock adapter that mirrors Plaid's real signatures (<span class="mono">/link/token/create</span> &rarr; <span class="mono">onSuccess(public_token)</span> &rarr; <span class="mono">/item/public_token/exchange</span>), so pointing it at the live SDK is a one-file swap. <b>Meridian is not a registered investment adviser and nothing here is investment advice.</b></div>
+    <div><b>About this build.</b> The interface is complete and the arithmetic is real &mdash; compounding, amortisation, pace projection and promo countdowns all compute live from the controls. Account data is a resident fixture, because a published page cannot reach an external host. The link flow calls a mock adapter that mirrors Plaid's real signatures (<span class="mono">/link/token/create</span> &rarr; <span class="mono">onSuccess(public_token)</span> &rarr; <span class="mono">/item/public_token/exchange</span>), so pointing it at the live SDK is a one-file swap. <b>Twomey Household is not a registered investment adviser and nothing here is investment advice.</b></div>
   </div>
 
   <div class="foot">
-    <span class="wm">Meridian</span>
+    <span class="wm">Twomey</span>
     <span>Wealth Console</span>
     <span class="sep" style="width:1px;height:11px;background:var(--line)"></span>
     <span>Fixture as of 8 Sep 2026</span>
@@ -1126,7 +1126,7 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
     <div class="sheet-b" id="linkStage1">
       <div class="note">
         <svg><use href="#i-lock"/></svg>
-        <div>You will sign in on <b>your bank's own page</b> inside Plaid Link. Meridian never sees, stores, or transmits your credentials &mdash; we receive a read-only token when you are done.</div>
+        <div>You will sign in on <b>your bank's own page</b> inside Plaid Link. The console never sees, stores, or transmits your credentials &mdash; we receive a read-only token when you are done.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:7px">
         <span class="lbl">Popular institutions</span>

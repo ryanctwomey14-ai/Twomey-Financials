@@ -1,5 +1,5 @@
 /**
- * Plaid -> Meridian shape.
+ * Plaid -> dashboard shape.
  *
  * Everything the dashboard renders is derived here so the browser never has to
  * know Plaid exists. Where Plaid genuinely cannot supply something, this file

@@ -1,5 +1,5 @@
 /**
- * Local store for Meridian.
+ * Local store for the Twomey Household console.
  *
  * Access tokens are the only secret here, so they are the only thing encrypted
  * (AES-256-GCM). Everything else stays readable JSON on purpose — budget targets
@@ -22,9 +22,12 @@ fs.mkdirSync(DATA, { recursive: true });
 
 /* ---------- key management ---------- */
 function loadKey() {
-  if (process.env.MERIDIAN_KEY) {
-    const k = Buffer.from(process.env.MERIDIAN_KEY.trim(), "hex");
-    if (k.length !== 32) throw new Error("MERIDIAN_KEY must be 64 hex characters (32 bytes).");
+  /* TWOMEY_KEY is the current name; MERIDIAN_KEY is still read so an existing
+   .env keeps working after the rename. */
+  const envKey = process.env.TWOMEY_KEY || process.env.MERIDIAN_KEY;
+  if (envKey) {
+    const k = Buffer.from(envKey.trim(), "hex");
+    if (k.length !== 32) throw new Error("TWOMEY_KEY must be 64 hex characters (32 bytes).");
     return k;
   }
   if (fs.existsSync(KEYFILE)) return Buffer.from(fs.readFileSync(KEYFILE, "utf8").trim(), "hex");
