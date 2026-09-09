@@ -13,6 +13,8 @@ import nodeCrypto from "node:crypto";
 import { Configuration, PlaidApi, PlaidEnvironments, Products, CountryCode } from "plaid";
 import * as store from "./store.js";
 import * as digest from "./digest.js";
+import * as mailer from "./mailer.js";
+import * as schedule from "./schedule.js";
 import { buildState } from "./normalize.js";
 import { fetchPrices } from "./prices.js";
 import * as auth from "./auth.js";
@@ -315,6 +317,34 @@ async function refreshItem(item) {
   }
 }
 
+/* Refresh every institution, then read every institution. Extracted so the
+ * weekly digest runs the same sync the dashboard's button does, rather than a
+ * second implementation that could drift from it. */
+async function syncAll() {
+  if (!plaid) throw new Error("Plaid keys are not configured.");
+  const items = liveItems();
+  if (!items.length) return { items: 0, results: [] };
+  const refreshed = Object.fromEntries(await Promise.all(
+    items.map(async item => [item.itemId, await refreshItem(item)])));
+  const results = [];
+  for (const item of items) {
+    try {
+      results.push({ itemId: item.itemId, institution: item.institutionName,
+                     refresh: refreshed[item.itemId], ...(await syncItem(item.itemId)) });
+    } catch (e) {
+      const code = errOf(e)?.error_code || null;
+      store.update(st => {
+        const it = st.items.find(i => i.itemId === item.itemId);
+        if (it) { it.status = code === "ITEM_LOGIN_REQUIRED" ? "reauth" : "error"; it.error = code || e.message; }
+      });
+      results.push({ itemId: item.itemId, institution: item.institutionName, error: code || e.message });
+    }
+  }
+  try { await refreshCryptoPrices(); } catch (e) { console.log("[prices]", e.message); }
+  snapshotNow();
+  return { items: items.length, results, at: new Date().toISOString() };
+}
+
 app.post("/api/sync", async (req, res) => {
   if (!plaid) return res.status(503).json({ error: "Plaid keys are not configured." });
   const items = liveItems();
@@ -401,6 +431,38 @@ function snapshotNow() {
 /* Render the weekly email without sending it. `format=text` returns the plain
  * text alternative, `format=json` the figures behind it -- useful for checking
  * a number in the email against the same number on the dashboard. */
+/* Status, a credential check, and a manual send -- everything needed to prove
+ * the schedule works without waiting for Sunday. */
+app.get("/api/digest/status", async (req, res) => {
+  const st = store.read().settings || {};
+  res.json({
+    ...schedule.dueState(),
+    transport: mailer.describe(),
+    transportReady: mailer.configured(),
+    verify: req.query.verify === "1" ? await mailer.verify() : undefined,
+    lastDigestAt: st.lastDigestAt || null
+  });
+});
+
+app.post("/api/digest/settings", (req, res) => {
+  const b = req.body || {};
+  store.update(s => {
+    if (typeof b.to === "string") s.settings.digestTo = b.to.trim();
+    if (typeof b.enabled === "boolean") s.settings.digestEnabled = b.enabled;
+    /* Clearing the stamp is how a week is re-sent deliberately. */
+    if (b.resetWeek === true) s.settings.lastDigestWeek = null;
+  });
+  const st = store.read().settings;
+  res.json({ to: st.digestTo, enabled: st.digestEnabled, lastDigestWeek: st.lastDigestWeek });
+});
+
+app.post("/api/digest/send", async (req, res) => {
+  try {
+    const r = await schedule.sendNow({ assemble, syncAll, force: req.body?.force === true });
+    res.status(r.sent ? 200 : 409).json(r);
+  } catch (e) { fail(res, e, "digest send"); }
+});
+
 app.get("/api/digest/preview", (req, res) => {
   try {
     const S = assemble();
@@ -850,5 +912,8 @@ app.listen(PORT, AUTH.host, () => {
   console.log(`  Linked:    ${liveItems().length} institution(s) in ${ENV}`);
   if (stray.length) console.log(`  Held back: ${stray.length} item(s) linked in a different environment`);
   if (ENV === "production" && !WEBHOOK) console.log(`  Note:      no PLAID_WEBHOOK_URL set — refresh with the sync button`);
+  const dg = store.read().settings || {};
+  console.log(`  Digest:    ${dg.digestEnabled === false ? "off" : `${dg.digestTo || "no recipient"} — ${mailer.describe()}`}`);
   console.log("");
+  schedule.start({ assemble, syncAll });
 });

@@ -80,7 +80,14 @@ const BLANK = {
     /* Transfers into the brokerage are recognised by name. MSPBNA is Morgan
      * Stanley Private Bank, which is how E*TRADE contributions arrive. */
     investmentPatterns: ["MSPBNA"],
-    investmentTarget: 5000
+    investmentTarget: 5000,
+    /* Weekly digest. `lastDigestWeek` holds the end date of the last week
+     * actually delivered -- it is what stops a restart re-sending, and it is
+     * stamped only after the send resolves. */
+    digestEnabled: true,
+    digestTo: "ryanctwomey14@gmail.com",
+    lastDigestWeek: null,
+    lastDigestAt: null
   }
 };
 

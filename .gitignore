@@ -7,3 +7,8 @@ node_modules/
 # OS noise
 Thumbs.db
 .DS_Store
+
+# Server output — carries institution names and sync detail.
+server/console.log
+server/console.log.err
+server/console.log.old

@@ -11,11 +11,14 @@
     "verify": "node verify.js",
     "seed": "node verify.js --seed",
     "test": "node test-normalize.js",
-    "doctor": "node doctor.js"
+    "doctor": "node doctor.js",
+    "digest:check": "node digest-cli.js check",
+    "digest:send": "node digest-cli.js send"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
+    "nodemailer": "^10.0.2",
     "plaid": "^27.0.0"
   },
   "engines": {
