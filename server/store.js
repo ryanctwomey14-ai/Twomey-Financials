@@ -76,7 +76,11 @@ const BLANK = {
     ignoredLeaks: [],
     /* Transactions before this date are neither stored nor counted. Null means
      * keep everything Plaid provides. */
-    trackFrom: null
+    trackFrom: null,
+    /* Transfers into the brokerage are recognised by name. MSPBNA is Morgan
+     * Stanley Private Bank, which is how E*TRADE contributions arrive. */
+    investmentPatterns: ["MSPBNA"],
+    investmentTarget: 5000
   }
 };
 

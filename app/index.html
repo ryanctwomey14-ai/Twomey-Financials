@@ -256,7 +256,8 @@ main{padding:clamp(16px,2.4vw,26px);display:flex;flex-direction:column;gap:clamp
 .attr b{color:var(--t1);font-weight:500;font-family:"JetBrains Mono",monospace}
 
 .mrow{display:grid;gap:10px;margin-top:22px}
-@media (min-width:560px){.mrow{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:560px){.mrow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1180px){.mrow{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .metric{
   padding:12px 13px;border-radius:11px;border:1px solid var(--line-2);
   background:rgba(255,255,255,.028);display:flex;flex-direction:column;gap:8px;
@@ -296,7 +297,7 @@ main{padding:clamp(16px,2.4vw,26px);display:flex;flex-direction:column;gap:clamp
 
 /* ================= CHARTS ================= */
 .chart-box{position:relative;width:100%}
-.chart-box svg{display:block;width:100%;height:auto;overflow:visible}
+.chart-box svg{display:block;width:100%;overflow:visible}
 .gridline{stroke:rgba(255,255,255,.055);stroke-width:1}
 .axis-tx{font-family:"JetBrains Mono",monospace;font-size:9.5px;fill:var(--t3);letter-spacing:.02em}
 .pth{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -649,9 +650,8 @@ details[open] summary::before{content:"\2212 "}
   <button class="rail-btn" data-go="projection"><svg><use href="#i-trend"/></svg><span class="rail-tip">Projections</span><span class="sr">Projections</span></button>
   <button class="rail-btn" data-go="holdings"><svg><use href="#i-bank"/></svg><span class="rail-tip">Holdings</span><span class="sr">Holdings</span></button>
   <button class="rail-btn" data-go="promos"><svg><use href="#i-clock"/></svg><span class="rail-tip">0% promo clocks</span><span class="sr">0% promo clocks</span></button>
-  <button class="rail-btn" data-go="security"><svg><use href="#i-shield"/></svg><span class="rail-tip">Security</span><span class="sr">Security</span></button>
   <div class="rail-sp"></div>
-  <button class="rail-btn" data-go="security"><svg><use href="#i-gear"/></svg><span class="rail-tip">Settings</span><span class="sr">Settings</span></button>
+  <button class="rail-btn" data-go="holdings"><svg><use href="#i-gear"/></svg><span class="rail-tip">Manual holdings</span><span class="sr">Manual holdings</span></button>
 </nav>
 
 <div class="frame">
@@ -714,31 +714,18 @@ details[open] summary::before{content:"\2212 "}
           <div class="bar"><i class="em" style="width:62%"></i></div>
           <div class="mt">Per month, after $4,860 invested</div>
         </div>
+        <div class="metric">
+          <div class="mk"><span class="lbl">Invested this month</span></div>
+          <div class="mv" data-money="1" id="investedVal">&mdash;</div>
+          <div class="bar"><i id="investedBar" style="width:0%"></i></div>
+          <div class="mt" id="investedNote">Transfers into the brokerage, month to date</div>
+        </div>
       </div>
     </div>
 
-    <div class="qa">
+    <div class="qa" id="quickActions">
       <span class="lbl">Do next</span>
-      <button class="qa-card" data-act="promo">
-        <span class="qa-ic vio"><svg><use href="#i-clock"/></svg></span>
-        <span class="qa-tx"><b>Clear the Reflect promo</b><span>83 days left &middot; $2,316 short at current pace</span></span>
-        <svg class="qa-go"><use href="#i-chev"/></svg>
-      </button>
-      <button class="qa-card" data-act="leaks">
-        <span class="qa-ic gold"><svg><use href="#i-scissors"/></svg></span>
-        <span class="qa-tx"><b>Cut 4 dead subscriptions</b><span>$134/mo &middot; $181k over 30 years</span></span>
-        <svg class="qa-go"><use href="#i-chev"/></svg>
-      </button>
-      <button class="qa-card" data-act="sweep">
-        <span class="qa-ic em"><svg><use href="#i-zap"/></svg></span>
-        <span class="qa-tx"><b>Sweep idle cash to brokerage</b><span>$12,400 above your 6-month floor</span></span>
-        <svg class="qa-go"><use href="#i-chev"/></svg>
-      </button>
-      <button class="qa-card" data-act="link">
-        <span class="qa-ic"><svg><use href="#i-link"/></svg></span>
-        <span class="qa-tx"><b>Link another institution</b><span>Read-only via Plaid &middot; 60 seconds</span></span>
-        <svg class="qa-go"><use href="#i-chev"/></svg>
-      </button>
+      <div id="qaList"></div>
     </div>
   </div>
 
@@ -1015,8 +1002,8 @@ details[open] summary::before{content:"\2212 "}
       <p id="leakSub">Recurring charges with no matching usage signal, plus categories drifting above their own 12-month baseline.</p>
     </div>
     <div class="sec-sp"></div>
-    <span class="chip rose"><svg><use href="#i-alert"/></svg>6 findings</span>
-    <span class="chip gold">$1,608/yr recurring</span>
+    <span class="chip rose" id="leakCount"><svg><use href="#i-alert"/></svg>&mdash;</span>
+    <span class="chip gold" id="leakAnnual">&mdash;</span>
   </div>
 
   <div class="row r-7-5">
@@ -1031,10 +1018,10 @@ details[open] summary::before{content:"\2212 "}
         </table>
       </div>
       <div class="rule"></div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap" id="leakAction">
         <div style="flex:1;min-width:180px">
-          <span class="lbl">Cancel all four</span>
-          <p style="font-size:12px;color:var(--t1);margin-top:3px">Redirect <b class="num" style="color:var(--gold)">$134/mo</b> into the brokerage instead</p>
+          <span class="lbl" id="leakCancelLbl">&mdash;</span>
+          <p style="font-size:12px;color:var(--t1);margin-top:3px" id="leakCancelTx">&mdash;</p>
         </div>
         <div style="text-align:right">
           <span class="lbl">Becomes</span>
@@ -1061,48 +1048,18 @@ details[open] summary::before{content:"\2212 "}
   </div>
 </section>
 <!-- ============ DEBT ROUTING ============ -->
-<!-- ============ SECURITY & DATA ============ -->
-<section class="rise" style="animation-delay:.44s" id="security">
-  <div class="sec-head" style="margin-bottom:12px">
-    <div>
-      <h2>How the data gets here</h2>
-      <p>The console holds a read-only token, never a credential. The handoff happens inside Plaid Link, on Plaid's own origin.</p>
-    </div>
-  </div>
-
-  <div class="trust-grid" style="margin-bottom:12px">
-    <div class="trust-card">
-      <span class="ti"><svg><use href="#i-lock"/></svg></span>
-      <b>Credentials never reach us</b>
-      <p>Plaid Link runs in its own sandboxed frame. You authenticate with your bank; we receive a public token and exchange it server-side for a read-only access token. No password ever crosses Twomey Household.</p>
-    </div>
-    <div class="trust-card">
-      <span class="ti"><svg><use href="#i-shield"/></svg></span>
-      <b>Read-only by construction</b>
-      <p>Tokens are scoped to <span class="mono" style="font-size:10.5px">transactions</span>, <span class="mono" style="font-size:10.5px">auth</span>, <span class="mono" style="font-size:10.5px">liabilities</span>, <span class="mono" style="font-size:10.5px">investments</span>. No payment scope is requested, so money movement is not technically possible.</p>
-    </div>
-    <div class="trust-card">
-      <span class="ti"><svg><use href="#i-repeat"/></svg></span>
-      <b>Webhook-driven freshness</b>
-      <p>Balances refresh on Plaid's <span class="mono" style="font-size:10.5px">DEFAULT_UPDATE</span> webhook rather than polling. A stale or re-auth-required item shows its own state instead of quietly serving old numbers.</p>
-    </div>
-    <div class="trust-card">
-      <span class="ti"><svg><use href="#i-eye-off"/></svg></span>
-      <b>Yours to revoke</b>
-      <p>Unlinking an institution fires <span class="mono" style="font-size:10.5px">/item/remove</span>, invalidates the token at Plaid, and purges the derived transaction rows. Export everything as CSV or JSON first.</p>
-    </div>
-  </div>
-
+<!-- A short disclosure is kept: the projections are arithmetic on assumptions,
+     and saying so is worth more than the section that used to surround it. -->
+<section class="rise" style="animation-delay:.44s">
   <div class="disclosure">
     <svg><use href="#i-alert"/></svg>
-    <div><b>About this build.</b> The interface is complete and the arithmetic is real &mdash; compounding, amortisation, pace projection and promo countdowns all compute live from the controls. Account data is a resident fixture, because a published page cannot reach an external host. The link flow calls a mock adapter that mirrors Plaid's real signatures (<span class="mono">/link/token/create</span> &rarr; <span class="mono">onSuccess(public_token)</span> &rarr; <span class="mono">/item/public_token/exchange</span>), so pointing it at the live SDK is a one-file swap. <b>Twomey Household is not a registered investment adviser and nothing here is investment advice.</b></div>
+    <div><b>Projections are arithmetic, not advice.</b> Returns are your own assumptions compounded forward &mdash;
+    not a forecast, and no allowance for taxes, fees or sequence risk. Twomey Household is not a registered
+    investment adviser.</div>
   </div>
-
   <div class="foot">
     <span class="wm">Twomey</span>
-    <span>Wealth Console</span>
-    <span class="sep" style="width:1px;height:11px;background:var(--line)"></span>
-    <span>Fixture as of 8 Sep 2026</span>
+    <span>Household Wealth Console</span>
     <span class="sep" style="width:1px;height:11px;background:var(--line)"></span>
     <span>Press <span class="kbd">Ctrl K</span> for the command bar</span>
   </div>
@@ -1345,9 +1302,21 @@ function sampleRange(key){
   return out;
 }
 
+/* The viewBox is sized to the element's real pixel box. With
+   preserveAspectRatio="none" any mismatch stretches the labels, so a fixed
+   viewBox on a full-width card gave a chart hundreds of pixels tall. */
+function fitChart(svg, box, height){
+  const w = Math.max(360, Math.round(box.getBoundingClientRect().width) || 720);
+  svg.setAttribute("viewBox", `0 0 ${w} ${height}`);
+  svg.style.height = height + "px";
+  return w;
+}
+
 function drawNW(key, animate){
   const data = sampleRange(key);
-  const W=720, H=240, PL=44, PR=8, PT=14, PB=22;
+  const H = Math.round(Math.min(190, Math.max(140, innerHeight * 0.19)));
+  const W = fitChart(nwSvg, nwBox, H);
+  const PL=44, PR=8, PT=14, PB=22;
   if (data.length < 2){
     nwSvg.innerHTML = `<text x="${W/2}" y="${H/2-6}" text-anchor="middle" class="axis-tx" style="font-size:12px;fill:var(--t2)">Net worth history starts building today.</text>`
       + `<text x="${W/2}" y="${H/2+14}" text-anchor="middle" class="axis-tx">One point is recorded each time you sync.</text>`;
@@ -1604,6 +1573,47 @@ document.addEventListener("click", async e => {
   }
 });
 
+/* Suggestions come from what is actually true right now, not from a script. */
+function renderQuickActions(S){
+  const box = $("#qaList"); if (!box) return;
+  const out = [];
+
+  const soonest = (S.debts || []).filter(d => d.days != null).sort((a,b) => a.days - b.days)[0];
+  if (soonest) out.push({ act:"promo", icon:"i-clock", cls:"vio",
+    title:`Clear the ${(soonest.n || "").split(/\s+/).slice(0,3).join(" ")} promo`,
+    sub:`${soonest.days} days of 0% left on ${usd(soonest.bal)}` });
+
+  const needDates = (S.needsPromoDates || []).length;
+  if (needDates) out.push({ act:"promo", icon:"i-alert", cls:"vio",
+    title:`Set ${needDates} promo end date${needDates===1?"":"s"}`,
+    sub:"The countdown cannot start without it" });
+
+  const cancellable = (S.leaks || []).filter(l => l.cancel);
+  if (cancellable.length){
+    const m = cancellable.reduce((s,l)=>s+l.m,0);
+    out.push({ act:"leaks", icon:"i-scissors", cls:"gold",
+      title:`Review ${cancellable.length} recurring charge${cancellable.length===1?"":"s"}`,
+      sub:`${usd(Math.round(m))}/mo flagged` });
+  }
+
+  const inv = S.metrics.investedMTD || 0, tgt = S.metrics.investmentTarget || 0;
+  if (tgt && inv < tgt) out.push({ act:"none", icon:"i-zap", cls:"em",
+    title:`${usd(tgt - inv)} left to invest this month`,
+    sub:`${usd(inv)} of ${usd(tgt)} moved so far` });
+
+  if (!S.budgetCustomised && S.suggestedBudget?.basedOn) out.push({ act:"none", icon:"i-target", cls:"gold",
+    title:"Set your budget targets", sub:"Pace alerts need them to mean anything" });
+
+  out.push({ act:"link", icon:"i-link", cls:"", title:"Link another institution", sub:"Read-only via Plaid" });
+
+  box.innerHTML = out.slice(0, 4).map(a => `
+    <button class="qa-card" ${a.act === "none" ? "" : `data-act="${a.act}"`}>
+      <span class="qa-ic ${a.cls}"><svg><use href="#${a.icon}"/></svg></span>
+      <span class="qa-tx"><b>${a.title}</b><span>${a.sub}</span></span>
+      <svg class="qa-go"><use href="#i-chev"/></svg>
+    </button>`).join("");
+}
+
 function renderNwStats(){
   const box = $("#nwStats"); if (!box) return;
   const nAcct = Object.values(ACCOUNTS).flat().length;
@@ -1636,7 +1646,7 @@ function renderTxns(f){
     const opts = [...new Set([...cats, t.c])]
       .map(c => `<option value="${c}"${c === t.c ? " selected" : ""}>${c}</option>`).join("");
     return `<div class="txn">
-      <span class="txn-ic ${t.flag?"flag":""}"><svg><use href="#i-${t.flag?"alert":t.sub?"repeat":t.v>0?"up":"card"}"/></svg></span>
+      <span class="txn-ic ${t.flag?"flag":""}"${t.contribution?' style="color:var(--em);border-color:rgba(61,214,140,.3);background:var(--em-wash)"':""}><svg><use href="#i-${t.contribution?"trend":t.flag?"alert":t.sub?"repeat":t.v>0?"up":"card"}"/></svg></span>
       <span class="txn-tx"><b>${t.n}</b><span>${t.d} \u00b7 ${t.a}</span></span>
       ${LIVE ? `<select class="txn-cat${t.edited?" edited":""}" data-txn-cat="${t.id}" data-merchant="${encodeURIComponent(t.merchant||"")}"
          title="${t.edited?"You set this category":"Category from Plaid"}" aria-label="Category for ${t.n}">${opts}</select>`
@@ -1942,7 +1952,9 @@ const SC = {
 const scParams = k => ({ c: P.contrib*SC[k].c, r: Math.max(0, P.ret + SC[k].r) });
 
 function drawProj(animate){
-  const W=720, H=300, PL=48, PR=10, PT=16, PB=24;
+  const H = Math.round(Math.min(260, Math.max(180, innerHeight * 0.26)));
+  const W = fitChart($("#projChart"), $("#projBox"), H);
+  const PL=48, PR=10, PT=16, PB=24;
   const H_ = P.horizon;
   const series = {};
   Object.keys(SC).forEach(k => {
@@ -2058,8 +2070,6 @@ function drawProj(animate){
   renderGoalBand(bp, hitYear);
 
   /* leak opportunity cost tracks the same return */
-  const leakM = LEAKS.filter(l=>l.cancel).reduce((s,l)=>s+l.m,0);
-  $("#leakFv").textContent = short(fv(0, leakM, bp.r, 30));
   renderLeaks(bp.r);
 }
 
@@ -2073,12 +2083,34 @@ function renderLeaks(r){
         `Expect the first recurring charges to surface after a couple of billing cycles.`
       : `Recurring charges with no matching usage signal, plus categories drifting above their own 12-month baseline.`;
   }
+  /* Every figure in this section is derived from what is actually flagged, so an
+     empty leak list reads as empty rather than as stale demo numbers. */
+  const cancellable = LEAKS.filter(l => l.cancel);
+  const monthly = cancellable.reduce((s, l) => s + l.m, 0);
+  const words = ["none", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+  const n = cancellable.length;
+
+  if ($("#leakCount")) $("#leakCount").innerHTML =
+    `<svg><use href="#i-alert"/></svg>${LEAKS.length} finding${LEAKS.length === 1 ? "" : "s"}`;
+  if ($("#leakAnnual")) $("#leakAnnual").textContent =
+    monthly ? `${usd(Math.round(monthly * 12))}/yr recurring` : "Nothing recurring flagged";
+
+  const action = $("#leakAction");
+  if (action) action.style.display = n ? "" : "none";
+  if (n){
+    $("#leakCancelLbl").textContent = n === 1 ? "Cancel it" : `Cancel all ${words[n] || n}`;
+    $("#leakCancelTx").innerHTML =
+      `Redirect <b class="num" style="color:var(--gold)">${usd(Math.round(monthly))}/mo</b> into the brokerage instead`;
+  }
+  $("#leakFv").textContent = short(fv(0, monthly, r, 30));
+
   if (!LEAKS.length){
     $("#leakBody").innerHTML = `<tr><td colspan="4" style="padding:22px 10px;text-align:center;color:var(--t3);font-size:12px">${
       TRACK_FROM ? "Nothing to report yet. Recurring charges need a few billing cycles before they can be spotted."
                  : "No leaks found."}</td></tr>`;
     return;
   }
+
   $("#leakBody").innerHTML = LEAKS.map(l => {
     const kindChip = l.kind==="pace" ? '<span class="chip rose" style="font-size:9px;padding:2px 6px">pace</span>'
       : l.kind==="dupe" ? '<span class="chip" style="font-size:9px;padding:2px 6px">duplicate</span>'
@@ -2254,7 +2286,7 @@ document.addEventListener("click", async e => {
 });
 
 /* ================= QUICK ACTIONS / RAIL NAV ================= *//* ================= QUICK ACTIONS / RAIL NAV ================= *//* ================= QUICK ACTIONS / RAIL NAV ================= */
-const GO = { top:"#top", accounts:"#accounts", promos:"#promos", holdings:"#holdings", leaks:"#leaks", projection:"#projection", security:"#security" };
+const GO = { top:"#top", accounts:"#accounts", promos:"#promos", holdings:"#holdings", leaks:"#leaks", projection:"#projection" };
 function goto(k){
   const el = $(GO[k]); if(!el) return;
   el.scrollIntoView({behavior: REDUCE ? "auto" : "smooth", block:"start"});
@@ -2394,7 +2426,6 @@ const CMDS = [
   {t:"Trajectory",       k:"go", go:"projection", i:"i-trend"},
   {t:"0% promo clocks",  k:"go", go:"promos",     i:"i-clock"},
   {t:"Holdings",         k:"go", go:"holdings",   i:"i-bank"},
-  {t:"Security & data",  k:"go", go:"security",   i:"i-shield"},
   {t:"Link an institution", k:"act", act:"link",  i:"i-link"},
   {t:"Re-sync all accounts", k:"sync",            i:"i-refresh"},
   {t:"Hide balances",    k:"priv",               i:"i-eye-off"}
@@ -2583,6 +2614,25 @@ function applyState(S){
     M[2].querySelector(".mt").textContent = "Income minus tracked spending, month to date";
   }
 
+  /* Money into the brokerage this month, against the monthly goal. */
+  const inv = S.metrics.investedMTD || 0;
+  const target = S.metrics.investmentTarget || 0;
+  const iv = $("#investedVal"), ib = $("#investedBar"), inote = $("#investedNote");
+  if (iv){
+    iv.textContent = usd(inv);
+    iv.className = "mv" + (target && inv >= target ? " gain" : "");
+    ib.style.width = target ? Math.min(100, (inv / target) * 100) + "%" : "0%";
+    ib.className = target && inv >= target ? "em" : "";
+    const short_ = Math.max(0, target - inv);
+    inote.innerHTML = !target
+      ? `${S.metrics.investmentCount || 0} transfer${(S.metrics.investmentCount||0)===1?"":"s"} matched`
+      : inv >= target
+        ? `Goal of ${usd(target)} met &mdash; ${usd(inv - target)} beyond it`
+        : `${usd(short_)} short of ${usd(target)}${
+            S.metrics.investmentCount ? ` &middot; ${S.metrics.investmentCount} transfer${S.metrics.investmentCount===1?"":"s"}` : ""}`;
+  }
+
+  renderQuickActions(S);
   const link = $("#pLink");
   if (link){
     const loans = (S.accounts.credit || []).filter(a => !String(a.id).startsWith("manual:"));

@@ -453,6 +453,9 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
   /* Hiding is by id and survives re-sync: transactionsSync would otherwise
    * re-add a duplicate the moment it is deleted. */
   const hidden = new Set(settings.hiddenTxns || []);
+  const patterns = (settings.investmentPatterns || []).map(p => String(p).toUpperCase()).filter(Boolean);
+  const looksLikeContribution = name => patterns.length > 0 &&
+    patterns.some(p => String(name || "").toUpperCase().includes(p));
   const txns = transactions
     .filter(t => !t.pending && !hidden.has(t.transaction_id) && !hiddenAccounts.has(t.account_id))
     .filter(t => inWindow(t.date))
@@ -471,10 +474,19 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
         a: acct?.name || "Account",
         sub: recurringTxnIds.has(t.transaction_id) ? 1 : 0,
         merchant: merchantKey(t),
+        contribution: looksLikeContribution(t.merchant_name || t.name),
         edited: Boolean(settings.txnOverrides?.[t.transaction_id]?.c),
         flag: 0
       };
     });
+
+  /* --- money moved into investments this month ---
+   * Matched by name, because a transfer to a brokerage is not a category Plaid
+   * models. Only the outgoing leg counts: if both sides of the transfer are
+   * linked, the matching credit would otherwise double it. */
+  const contributions = txns.filter(t =>
+    t.date >= iso.slice(0, 8) + "01" && t.v < 0 && t.contribution);
+  const investedMTD = contributions.reduce((s, t) => s + Math.abs(t.v), 0);
 
   /* --- month-to-date budget --- */
   const monthStart = iso.slice(0, 8) + "01";
@@ -575,6 +587,10 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
       runwayMonths: +(liquid / monthlyBurn).toFixed(1),
       monthlyBurn,
       incomeMTD: Math.round(income),
+      investedMTD: Math.round(investedMTD),
+      investmentTarget: Number(settings.investmentTarget) || 0,
+      investmentCount: contributions.length,
+      investmentPatterns: patterns,
       savingsRate: null                                  // needs gross income; set in settings if wanted
     },
     realEstate,

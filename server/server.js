@@ -57,7 +57,13 @@ app.use((req, res, next) => {
 app.post("/api/login", auth.login);
 app.post("/api/logout", auth.logout);
 app.use(auth.middleware);
-app.use(express.static(path.join(DIR, "..", "app")));
+/* The client is one file that changes often. Letting a browser hold an old copy
+ * produces the worst kind of bug: correct data rendered by stale code. */
+app.use(express.static(path.join(DIR, "..", "app"), {
+  etag: true,
+  lastModified: true,
+  setHeaders: res => res.setHeader("Cache-Control", "no-cache")
+}));
 
 /* CSRF guard. Browsers omit Origin on same-origin GETs but always send it on
  * writes, so this compares it against the host the request actually arrived on.
@@ -423,6 +429,19 @@ app.post("/api/settings", (req, res) => {
       hiddenAccounts: patch.hiddenAccounts ?? s.settings.hiddenAccounts ?? [] };
   });
   res.json(store.read().settings);
+});
+
+/* The name fragments that mark a brokerage transfer, and the monthly goal. */
+app.post("/api/investing", (req, res) => {
+  const b = req.body || {};
+  store.update(s => {
+    if (Array.isArray(b.patterns))
+      s.settings.investmentPatterns = b.patterns.map(x => String(x).trim()).filter(Boolean);
+    if (b.target != null && Number.isFinite(Number(b.target)))
+      s.settings.investmentTarget = Math.max(0, Number(b.target));
+  });
+  const st = store.read().settings;
+  res.json({ patterns: st.investmentPatterns, target: st.investmentTarget });
 });
 
 app.post("/api/budget", (req, res) => {
