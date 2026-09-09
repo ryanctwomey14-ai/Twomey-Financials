@@ -490,6 +490,65 @@ app.post("/api/budget/auto", (req, res) => {
  * Accounts, balances, holdings, budget targets and linked institutions are all
  * left alone -- this only clears the transaction record and what is derived
  * from it. */
+/* Pull a specific date window back from Plaid.
+ *
+ * transactionsSync cannot do this: its cursor has already moved past the rows,
+ * and rewinding it would re-pull two years only to discard nearly all of it.
+ * transactionsGet is date-addressed, which is exactly the shape of the request.
+ *
+ * dryRun reports what would be imported without writing, so a window can be
+ * inspected before it lands in the store. */
+app.post("/api/transactions/import", async (req, res) => {
+  if (!plaid) return res.status(503).json({ error: "Plaid keys are not configured." });
+  const { from, to, patternsOnly = false, dryRun = false } = req.body || {};
+  const ymd = /^\d{4}-\d{2}-\d{2}$/;
+  if (!ymd.test(from) || !ymd.test(to)) return res.status(400).json({ error: "from and to must be YYYY-MM-DD." });
+  if (from > to) return res.status(400).json({ error: "from must not be after to." });
+
+  const st = store.read();
+  const patterns = (st.settings.investmentPatterns || []).map(p => String(p).toUpperCase()).filter(Boolean);
+  if (patternsOnly && !patterns.length)
+    return res.status(400).json({ error: "No investment patterns configured to match against." });
+
+  const known = new Set((st.transactions || []).map(t => t.transaction_id));
+  const matches = t => !patternsOnly ||
+    patterns.some(p => [t.merchant_name, t.name, t.original_description]
+      .some(v => String(v || "").toUpperCase().includes(p)));
+
+  const found = [], errors = [];
+  for (const item of liveItems()) {
+    const access_token = store.itemToken(item);
+    try {
+      let offset = 0, total = Infinity;
+      while (offset < total && offset < 2000) {
+        const r = await withRetry(() => plaid.transactionsGet({
+          access_token, start_date: from, end_date: to,
+          options: { count: 500, offset }
+        }), "transactionsGet");
+        total = r.data.total_transactions;
+        for (const t of r.data.transactions) {
+          if (t.pending || known.has(t.transaction_id) || !matches(t)) continue;
+          found.push({ ...t, itemId: item.itemId });
+        }
+        offset += r.data.transactions.length;
+        if (!r.data.transactions.length) break;
+      }
+    } catch (e) {
+      errors.push({ institution: item.institutionName, error: errOf(e)?.error_code || e.message });
+    }
+  }
+
+  const preview = found
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(t => ({ date: t.date, name: t.merchant_name || t.name, amount: t.amount, account: t.account_id }));
+
+  if (dryRun) return res.json({ dryRun: true, from, to, patternsOnly, count: found.length, errors, preview });
+
+  store.update(s => { s.transactions = [...(s.transactions || []), ...found]; });
+  snapshotNow();
+  res.json({ imported: found.length, from, to, patternsOnly, errors, preview });
+});
+
 app.post("/api/transactions/reset", (req, res) => {
   const from = (req.body || {}).from || new Date().toISOString().slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) return res.status(400).json({ error: "from must be YYYY-MM-DD." });

@@ -400,13 +400,18 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
   border:1px solid rgba(155,138,240,.26);background:linear-gradient(180deg,rgba(155,138,240,.09),rgba(155,138,240,.02))}
 .promo.crit{border-color:rgba(242,118,107,.34);background:linear-gradient(180deg,rgba(242,118,107,.09),rgba(242,118,107,.02))}
 .promo-head{display:flex;align-items:center;gap:11px}
-.ring{position:relative;width:56px;height:56px;flex:none}
-.ring svg{width:56px;height:56px;transform:rotate(-90deg);display:block}
-.ring-bg{fill:none;stroke:rgba(255,255,255,.09);stroke-width:4}
-.ring-fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .9s var(--ease-out)}
-.ring-tx{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1}
-.ring-tx b{font-family:"JetBrains Mono",monospace;font-size:15px;font-weight:600;color:var(--t0);font-variant-numeric:tabular-nums;display:block}
-.ring-tx span{font-family:"JetBrains Mono",monospace;font-size:8px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-top:1px}
+.ring{position:relative;width:64px;height:64px;flex:none}
+.ring svg{width:64px;height:64px;transform:rotate(-90deg);display:block}
+.ring-bg{fill:none;stroke:rgba(255,255,255,.09);stroke-width:3.5}
+.ring-fg{fill:none;stroke-width:3.5;stroke-linecap:round;transition:stroke-dashoffset .9s var(--ease-out)}
+/* Flex column rather than a grid cell: the number and its label need to sit as
+   one centred block, or a three-digit count pushes "days" onto the stroke. */
+.ring-tx{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:2px}
+.ring-tx b{font-family:"JetBrains Mono",monospace;font-size:16px;font-weight:600;color:var(--t0);
+  font-variant-numeric:tabular-nums;letter-spacing:-.04em;line-height:1;display:block}
+.ring-tx b.wide{font-size:13.5px}
+.ring-tx span{font-family:"JetBrains Mono",monospace;font-size:7.5px;color:var(--t3);
+  letter-spacing:.08em;text-transform:uppercase;line-height:1;display:block}
 .promo-meta{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
 .promo-meta b{font-size:12.5px;font-weight:600;color:var(--t0)}
 .promo-meta span{font-size:10.5px;color:var(--t2);font-family:"JetBrains Mono",monospace}
@@ -2238,7 +2243,7 @@ function renderPromoClocks(){
     const clear = d.bal / stmts;
     const minOnly = Math.max(0, d.bal - d.min * stmts);   // what minimums alone leave behind
     const frac  = days != null ? Math.max(0, Math.min(1, days / (d.window || 365))) : 0;
-    const C = 150.8;
+    const C = 175.9;                       // 2 x pi x 28
     const short_ = minOnly > 0;
     const col = days != null && days <= 120 ? "var(--rose)" : "var(--vio)";
 
@@ -2257,7 +2262,7 @@ function renderPromoClocks(){
     if (days == null){
       return `<div class="promo">
         <div class="promo-head">
-          <div class="ring"><svg viewBox="0 0 56 56"><circle class="ring-bg" cx="28" cy="28" r="24"/></svg>
+          <div class="ring"><svg viewBox="0 0 64 64"><circle class="ring-bg" cx="32" cy="32" r="28"/></svg>
             <div class="ring-tx"><b>?</b><span>days</span></div></div>
           <div class="promo-meta"><b>${d.n}</b><span>0% on ${usd(d.bal)}${d.manualPromo ? " &middot; marked by you" : ""}</span>
             <span class="chip vio" style="margin-top:3px;align-self:flex-start"><svg><use href="#i-clock"/></svg>Needs end date</span></div>
@@ -2269,9 +2274,9 @@ function renderPromoClocks(){
     return `<div class="promo${days <= 120 ? " crit" : ""}">
       <div class="promo-head">
         <div class="ring">
-          <svg viewBox="0 0 56 56"><circle class="ring-bg" cx="28" cy="28" r="24"/>
-            <circle class="ring-fg" cx="28" cy="28" r="24" stroke="${col}" stroke-dasharray="${C}" stroke-dashoffset="${(C*(1-frac)).toFixed(1)}"/></svg>
-          <div class="ring-tx"><b>${days}</b><span>days</span></div>
+          <svg viewBox="0 0 64 64"><circle class="ring-bg" cx="32" cy="32" r="28"/>
+            <circle class="ring-fg" cx="32" cy="32" r="28" stroke="${col}" stroke-dasharray="${C}" stroke-dashoffset="${(C*(1-frac)).toFixed(1)}"/></svg>
+          <div class="ring-tx"><b class="${String(days).length > 3 ? "wide" : ""}">${days}</b><span>days</span></div>
         </div>
         <div class="promo-meta">
           <b>${d.n}</b>
