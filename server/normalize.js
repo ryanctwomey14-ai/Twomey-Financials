@@ -165,8 +165,17 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
   const student = new Map((liabilities?.student || []).map(c => [c.account_id, c]));
   const mortgage = new Map((liabilities?.mortgage || []).map(c => [c.account_id, c]));
 
-  /* --- recurring streams --- */
-  const outflows = (recurring?.outflow_streams || []).filter(s => s.is_active !== false);
+  /* --- tracking window ---
+   * A fresh start means history is not merely hidden, it is not counted: the
+   * feed, the budget and the leak detector all begin at the same date. */
+  const trackFrom = settings.trackFrom || null;
+  const inWindow = date => !trackFrom || String(date) >= trackFrom;
+
+  /* --- recurring streams ---
+   * A stream whose last charge predates the window belongs to the old history. */
+  const outflows = (recurring?.outflow_streams || [])
+    .filter(s => s.is_active !== false)
+    .filter(s => !trackFrom || inWindow(s.last_date));
   const recurringTxnIds = new Set(outflows.flatMap(s => s.transaction_ids || []));
 
   /* --- accounts ---
@@ -446,6 +455,7 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
   const hidden = new Set(settings.hiddenTxns || []);
   const txns = transactions
     .filter(t => !t.pending && !hidden.has(t.transaction_id) && !hiddenAccounts.has(t.account_id))
+    .filter(t => inWindow(t.date))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 400)
     .map(t => {
@@ -577,6 +587,8 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
     homeEquity: properties.reduce((s, p) => s + p.equity, 0),
     debts,
     txns,
+    trackFrom,
+    trackingDays: trackFrom ? Math.max(0, Math.round((today - new Date(trackFrom + "T00:00:00")) / 86400000)) : null,
     hiddenTxns: (settings.hiddenTxns || []).length,
     hiddenAccounts: hiddenList,
     budget,

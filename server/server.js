@@ -256,9 +256,14 @@ async function syncItem(itemId) {
     const changed = new Set(page.modified.map(m => m.transaction_id));
     const keep = (st.transactions || []).filter(t =>
       t.itemId !== itemId || (!gone.has(t.transaction_id) && !changed.has(t.transaction_id)));
-    st.transactions = [...keep,
-      ...page.added.map(t => ({ ...t, itemId })),
-      ...page.modified.map(t => ({ ...t, itemId }))];
+    /* Plaid keeps returning history behind the cursor. If tracking starts on a
+     * date, older rows are dropped on ingest rather than stored and filtered,
+     * so the file does not slowly refill with data the user deleted. */
+    const from = st.settings.trackFrom || null;
+    const fresh = [...page.added, ...page.modified]
+      .filter(t => !from || String(t.date) >= from)
+      .map(t => ({ ...t, itemId }));
+    st.transactions = [...keep, ...fresh];
 
     st.liabilitiesByItem = { ...(st.liabilitiesByItem || {}), [itemId]: liabilities };
     st.recurringByItem = { ...(st.recurringByItem || {}), [itemId]: recurring };
@@ -460,6 +465,29 @@ app.post("/api/budget/auto", (req, res) => {
     });
     res.json({ applied: suggested.targets, budget: store.read().budget });
   } catch (e) { fail(res, e, "budget/auto"); }
+});
+
+/* Start over: forget the transaction history and track only from a date.
+ * Accounts, balances, holdings, budget targets and linked institutions are all
+ * left alone -- this only clears the transaction record and what is derived
+ * from it. */
+app.post("/api/transactions/reset", (req, res) => {
+  const from = (req.body || {}).from || new Date().toISOString().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) return res.status(400).json({ error: "from must be YYYY-MM-DD." });
+  let removed = 0;
+  store.update(st => {
+    const before = (st.transactions || []).length;
+    st.transactions = (st.transactions || []).filter(t => String(t.date) >= from);
+    removed = before - st.transactions.length;
+    st.settings.trackFrom = from;
+    /* Leak findings are derived from recurring streams built over the old
+     * history, so they go too. Plaid rebuilds them as new data arrives. */
+    st.recurringByItem = {};
+    st.settings.hiddenTxns = [];
+    st.settings.txnOverrides = {};
+  });
+  snapshotNow();
+  res.json({ from, removed, remaining: (store.read().transactions || []).length });
 });
 
 /* Recategorise one transaction, and optionally teach the rule for its merchant. */

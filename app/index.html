@@ -683,10 +683,6 @@ details[open] summary::before{content:"\2212 "}
 <section class="hero rise" style="animation-delay:.02s" aria-labelledby="nwLabel">
   <div class="hero-grid">
     <div>
-      <div class="status-line">
-        <span class="chip" id="asOfChip"><span class="dot"></span>&mdash;</span>
-      </div>
-
       <h1 id="nwLabel" class="sr">Net worth</h1>
       <div class="nw-wrap">
         <div>
@@ -1016,7 +1012,7 @@ details[open] summary::before{content:"\2212 "}
   <div class="sec-head" style="margin-bottom:12px">
     <div>
       <h2>Money leaks</h2>
-      <p>Recurring charges with no matching usage signal, plus categories drifting above their own 12-month baseline.</p>
+      <p id="leakSub">Recurring charges with no matching usage signal, plus categories drifting above their own 12-month baseline.</p>
     </div>
     <div class="sec-sp"></div>
     <span class="chip rose"><svg><use href="#i-alert"/></svg>6 findings</span>
@@ -1060,7 +1056,7 @@ details[open] summary::before{content:"\2212 "}
       </div>
       <div id="txnList" style="display:flex;flex-direction:column;gap:1px;max-height:398px;overflow-y:auto"></div>
       <div class="rule"></div>
-      <p class="sub" style="font-size:11px;color:var(--t3)">Categorisation is a merchant-enrichment pass plus your own overrides. Correcting one transaction retrains the rule for that merchant.</p>
+      <p class="sub" id="txnFoot" style="font-size:11px;color:var(--t3)">Categorisation is a merchant-enrichment pass plus your own overrides. Correcting one transaction retrains the rule for that merchant.</p>
     </div>
   </div>
 </section>
@@ -1628,6 +1624,12 @@ function renderNwStats(){
 const OFF_BUDGET = ["Income", "Transfer", "Debt payment"];
 
 function renderTxns(f){
+  const foot = $("#txnFoot");
+  if (foot && TRACK_FROM){
+    const d = new Date(TRACK_FROM + "T00:00:00").toLocaleDateString("en-US", { day:"numeric", month:"long", year:"numeric" });
+    foot.innerHTML = `Tracking from <b>${d}</b> &mdash; nothing before that date is stored or counted. ` +
+      `Change a category to move spending into its budget line; you will be offered the same rule for every other charge from that merchant.`;
+  }
   const rows = TXNS.filter(t => f==="all" || (f==="flag"&&t.flag) || (f==="sub"&&t.sub));
   const cats = [...new Set([...BUDGET.map(b => b.n), ...KNOWN_CATEGORIES, ...OFF_BUDGET])];
   $("#txnList").innerHTML = rows.length ? rows.map(t => {
@@ -1642,7 +1644,10 @@ function renderTxns(f){
       <span class="txn-v ${t.v>0?"in":""}">${t.v>0?"+":""}${usd(t.v,2)}</span>
       ${LIVE ? `<button class="icon-btn txn-del" data-txn-del="${t.id}" title="Remove this transaction"><svg><use href="#i-x"/></svg><span class="sr">Remove ${t.n}</span></button>` : ""}
     </div>`;
-  }).join("") : `<p style="padding:24px 8px;text-align:center;font-size:12px;color:var(--t3)">Nothing matches that filter.</p>`;
+  }).join("") : `<p style="padding:24px 8px;text-align:center;font-size:12px;color:var(--t3)">${
+      TXNS.length === 0 && TRACK_FROM
+        ? `No transactions yet. The record starts ${new Date(TRACK_FROM+"T00:00:00").toLocaleDateString("en-US",{day:"numeric",month:"long"})}; press sync once your accounts post something new.`
+        : "Nothing matches that filter."}</p>`;
 }
 
 /* Recategorising one transaction can also teach the rule for its merchant. */
@@ -2059,6 +2064,21 @@ function drawProj(animate){
 }
 
 function renderLeaks(r){
+  const sub = $("#leakSub");
+  if (sub){
+    sub.innerHTML = TRACK_FROM
+      ? `Leaks are found by comparing months of history against each other, so this stays quiet until the record has depth. ` +
+        `Tracking began <b>${new Date(TRACK_FROM+"T00:00:00").toLocaleDateString("en-US",{day:"numeric",month:"long",year:"numeric"})}</b>` +
+        `${TRACKING_DAYS != null ? ` &mdash; <b>${TRACKING_DAYS}</b> day${TRACKING_DAYS===1?"":"s"} in` : ""}. ` +
+        `Expect the first recurring charges to surface after a couple of billing cycles.`
+      : `Recurring charges with no matching usage signal, plus categories drifting above their own 12-month baseline.`;
+  }
+  if (!LEAKS.length){
+    $("#leakBody").innerHTML = `<tr><td colspan="4" style="padding:22px 10px;text-align:center;color:var(--t3);font-size:12px">${
+      TRACK_FROM ? "Nothing to report yet. Recurring charges need a few billing cycles before they can be spotted."
+                 : "No leaks found."}</td></tr>`;
+    return;
+  }
   $("#leakBody").innerHTML = LEAKS.map(l => {
     const kindChip = l.kind==="pace" ? '<span class="chip rose" style="font-size:9px;padding:2px 6px">pace</span>'
       : l.kind==="dupe" ? '<span class="chip" style="font-size:9px;padding:2px 6px">duplicate</span>'
@@ -2441,6 +2461,7 @@ let LIVE = false;
 let HIDDEN_ACCOUNTS = [], HIDDEN_SHOWN = false, KNOWN_CATEGORIES = [], BUDGET_EDIT = false;
 let REAL_ESTATE = [], PROPERTIES = [], NOTES = [], CRYPTO = [];
 let ALTS_TOTAL = 0, HOME_EQUITY = 0;
+let TRACK_FROM = null, TRACKING_DAYS = null;
 
 async function api(p, opts){
   let r;
@@ -2509,6 +2530,8 @@ function applyState(S){
   CRYPTO      = S.crypto || [];
   ALTS_TOTAL  = S.altsTotal || 0;
   HOME_EQUITY = S.homeEquity || 0;
+  TRACK_FROM  = S.trackFrom || null;
+  TRACKING_DAYS = S.trackingDays;
   DAY = S.day; DAYS_IN_MONTH = S.daysInMonth; THRU = S.thru;
   START = new Date(S.asOf);
   DAILY = (S.anchors || []).map(a => ({ d: new Date(a.date + "T00:00:00"), v: a.v }));
@@ -2565,12 +2588,6 @@ function applyState(S){
     const loans = (S.accounts.credit || []).filter(a => !String(a.id).startsWith("manual:"));
     link.innerHTML = `<option value="">Enter manually below</option>` +
       loans.map(a => `<option value="${a.id}">${a.name} &mdash; ${usd(Math.abs(a.v))}</option>`).join("");
-  }
-  const asOf = $("#asOfChip");
-  if (asOf){
-    const last = S.items.map(i => i.lastSync).filter(Boolean).sort().pop();
-    asOf.innerHTML = `<span class="dot"></span>${S.items.length} institution${S.items.length===1?"":"s"} \u00b7 synced ${
-      last ? new Date(last).toLocaleString([], {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"}) : "never"}`;
   }
   rerender();
 }

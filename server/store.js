@@ -73,7 +73,10 @@ const BLANK = {
     baseReturn: 0.075,
     extraDebtPayment: 954,
     emergencyMonths: 6,
-    ignoredLeaks: []
+    ignoredLeaks: [],
+    /* Transactions before this date are neither stored nor counted. Null means
+     * keep everything Plaid provides. */
+    trackFrom: null
   }
 };
 
