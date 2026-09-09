@@ -185,13 +185,16 @@ export function removeItem(itemId) {
 }
 
 /* ---------- daily net-worth snapshots ---------- */
-export function recordSnapshot(assets, liabilities) {
+/* `invested` is the securities balance. Recording it here is what makes a
+ * week's market movement measurable: without a starting balance, a change in
+ * the portfolio cannot be told apart from money paid into it. */
+export function recordSnapshot(assets, liabilities, invested) {
   const date = new Date().toISOString().slice(0, 10);
   return update(s => {
     const net = assets - liabilities;
     const today = s.snapshots.find(p => p.date === date);
-    if (today) Object.assign(today, { assets, liabilities, net });
-    else s.snapshots.push({ date, assets, liabilities, net });
+    if (today) Object.assign(today, { assets, liabilities, net, invested });
+    else s.snapshots.push({ date, assets, liabilities, net, invested });
     s.snapshots.sort((a, b) => a.date.localeCompare(b.date));
     if (s.snapshots.length > 3700) s.snapshots = s.snapshots.slice(-3700);  // ~10 years
   });

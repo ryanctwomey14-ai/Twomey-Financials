@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import nodeCrypto from "node:crypto";
 import { Configuration, PlaidApi, PlaidEnvironments, Products, CountryCode } from "plaid";
 import * as store from "./store.js";
+import * as digest from "./digest.js";
 import { buildState } from "./normalize.js";
 import { fetchPrices } from "./prices.js";
 import * as auth from "./auth.js";
@@ -389,13 +390,32 @@ function assemble() {
 function snapshotNow() {
   try {
     const st = assemble();
-    store.recordSnapshot(st.totals.assets, st.totals.liabilities);
+    store.recordSnapshot(st.totals.assets, st.totals.liabilities, st.totals.invested);
   } catch (e) {
     /* A snapshot is a nice-to-have. Never let one fail the request that
      * triggered it, and never let it take the server down. */
     console.error("[snapshot]", e.message);
   }
 }
+
+/* Render the weekly email without sending it. `format=text` returns the plain
+ * text alternative, `format=json` the figures behind it -- useful for checking
+ * a number in the email against the same number on the dashboard. */
+app.get("/api/digest/preview", (req, res) => {
+  try {
+    const S = assemble();
+    const at = req.query.at ? new Date(String(req.query.at)) : new Date();
+    if (isNaN(at)) return res.status(400).json({ error: "at must be a date." });
+    const d = req.query.sample === "1"
+      ? digest.sampleDigest(at)
+      : digest.buildDigest(S, store.read(), at);
+    const fmt = String(req.query.format || "html");
+    if (fmt === "json") return res.json({ subject: digest.subjectFor(d), digest: d });
+    if (fmt === "text") { res.type("text/plain; charset=utf-8"); return res.send(digest.renderText(d)); }
+    res.type("text/html; charset=utf-8");
+    res.send(digest.renderHtml(d));
+  } catch (e) { fail(res, e, "digest"); }
+});
 
 app.get("/api/state", (req, res) => {
   try {
