@@ -147,19 +147,17 @@ function recommend({ S, spentTotal, spentPrior, categories, now }) {
     if (mtd < target) {
       out.push({
         tone: "act",
-        head: money(target - mtd) + " short of the monthly investing goal",
-        body: "You have moved " + money(mtd) + " of " + money(target) + " this month with " + daysLeft +
-              " day" + (daysLeft === 1 ? "" : "s") + " left. " +
-              (daysLeft > 0
-                ? "Transferring " + money((target - mtd) / Math.max(1, daysLeft / 7)) + " a week closes it."
-                : "The month is out of days.")
+        head: money(target - mtd) + " short of the " + money(target) + " investing goal",
+        body: daysLeft > 0
+          ? daysLeft + " day" + (daysLeft === 1 ? "" : "s") + " left \u2014 " +
+            money((target - mtd) / Math.max(1, daysLeft / 7)) + " a week closes it."
+          : "The month is out of days."
       });
     } else {
       out.push({
         tone: "good",
-        head: "Investing goal met — " + money(mtd) + " this month",
-        body: "That is " + money(mtd - target) + " past the " + money(target) +
-              " target. Raising the target is how you stop the habit drifting back down."
+        head: "Investing goal met \u2014 " + money(mtd) + " of " + money(target),
+        body: money(mtd - target) + " past target. Worth raising it."
       });
     }
   }
@@ -169,11 +167,9 @@ function recommend({ S, spentTotal, spentPrior, categories, now }) {
   if (worst && worst.delta > 50) {
     out.push({
       tone: "watch",
-      head: worst.name + " up " + money(worst.delta) + " on last week",
-      body: money(worst.spent) + " this week against " + money(worst.prior) + " last. " +
-            (worst.weeklyTarget
-              ? "A weekly share of your target is " + money(worst.weeklyTarget) + "."
-              : "No target is set for this category yet.")
+      head: worst.name + " up " + money(worst.delta),
+      body: money(worst.spent) + " against " + money(worst.prior) + " last week" +
+            (worst.weeklyTarget ? ". Target " + money(worst.weeklyTarget) + "/wk." : ", with no target set.")
     });
   }
 
@@ -183,9 +179,9 @@ function recommend({ S, spentTotal, spentPrior, categories, now }) {
     const excess = over.reduce((s, c) => s + (c.spent - c.weeklyTarget), 0);
     out.push({
       tone: "watch",
-      head: over.length + " categor" + (over.length === 1 ? "y is" : "ies are") + " ahead of pace",
-      body: over.slice(0, 3).map(c => c.name + " " + money(c.spent) + " vs " + money(c.weeklyTarget)).join(" · ") +
-            ". Held for a month that is " + money(excess * 4.33) + " over budget."
+      head: over.length + " categor" + (over.length === 1 ? "y" : "ies") + " ahead of pace",
+      body: over.slice(0, 3).map(c => c.name).join(", ") +
+            " \u2014 " + money(excess * 4.33) + " over budget if the month holds."
     });
   }
 
@@ -194,8 +190,8 @@ function recommend({ S, spentTotal, spentPrior, categories, now }) {
   if (leak) {
     out.push({
       tone: "act",
-      head: "Cancel " + leak.n + " to recover " + money(leak.c30) + " over 30 years",
-      body: money(leak.m) + " a month. Invested at your base return instead, that is what it compounds to."
+      head: "Cancel " + leak.n,
+      body: money(leak.m) + " a month \u2014 " + money(leak.c30) + " over 30 years if invested instead."
     });
   }
 
@@ -205,9 +201,9 @@ function recommend({ S, spentTotal, spentPrior, categories, now }) {
     const perMonth = promo.bal / Math.max(1, promo.days / 30.44);
     out.push({
       tone: promo.days < 120 ? "act" : "watch",
-      head: cardName(promo) + ": " + promo.days + " days of 0% left on " + money(promo.bal),
-      body: "Clearing it before the promo ends takes " + money(perMonth) +
-            " a month. After that the balance starts drawing interest."
+      head: cardName(promo) + ": " + promo.days + " days of 0% left",
+      body: money(promo.bal) + " outstanding \u2014 " + money(perMonth) +
+            " a month clears it before interest starts."
     });
   }
 
@@ -216,13 +212,16 @@ function recommend({ S, spentTotal, spentPrior, categories, now }) {
     const d = spentPrior - spentTotal;
     out.push({
       tone: "good",
-      head: "Spending down " + money(d) + " on last week",
+      head: "Spending down " + money(d),
       body: money(spentTotal) + " against " + money(spentPrior) +
-            ". Held for a year that is " + money(d * 52) + " that could be invested instead."
+            " last week \u2014 " + money(d * 52) + " a year at that rate."
     });
   }
 
-  return out;
+  /* Three at most. A list long enough to skim past is a list that gets skimmed
+   * past, and the ones below the fold were the weakest anyway. */
+  const rank = { act: 0, watch: 1, good: 2 };
+  return out.sort((a, b) => rank[a.tone] - rank[b.tone]).slice(0, 3);
 }
 
 /* ---------------- rendering ----------------
@@ -241,16 +240,16 @@ const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(
 
 const row = (label, value, colour, sub) =>
   '<tr>' +
-    '<td style="padding:9px 0;border-bottom:1px solid ' + C.line + ';font:400 14px ' + FONT + ';color:' + C.t1 + '">' +
+    '<td style="padding:7px 0;border-bottom:1px solid ' + C.line + ';font:400 13.5px ' + FONT + ';color:' + C.t1 + '">' +
       esc(label) +
       (sub ? '<div style="font:400 11px ' + FONT + ';color:' + C.t2 + ';padding-top:2px">' + esc(sub) + '</div>' : '') +
     '</td>' +
-    '<td align="right" style="padding:9px 0;border-bottom:1px solid ' + C.line + ';font:600 14px ' + MONO +
+    '<td align="right" style="padding:7px 0;border-bottom:1px solid ' + C.line + ';font:600 13.5px ' + MONO +
       ';color:' + (colour || C.t0) + ';white-space:nowrap">' + esc(value) + '</td>' +
   '</tr>';
 
 const section = (title, inner) =>
-  '<tr><td style="padding:26px 22px 0">' +
+  '<tr><td style="padding:20px 22px 0">' +
     '<div style="font:600 11px ' + MONO + ';letter-spacing:.14em;text-transform:uppercase;color:' + C.t2 +
       ';padding-bottom:10px">' + esc(title) + '</div>' + inner +
   '</td></tr>';
@@ -267,34 +266,33 @@ export function renderHtml(d) {
         esc(signed(n.delta)) + ' this week</div>';
 
   const catRows = s.categories.length
-    ? s.categories.slice(0, 10).map(c => row(
-        c.name,
-        money(c.spent),
-        c.weeklyTarget && c.spent > c.weeklyTarget ? C.rose : C.t0,
-        c.prior > 0
-          ? signed(c.delta) + " vs last week" + (c.weeklyTarget ? " · target " + money(c.weeklyTarget) + "/wk" : "")
-          : (c.weeklyTarget ? "target " + money(c.weeklyTarget) + "/wk" : "first week tracked")
-      )).join("")
+    /* Six rows, and the target is named only where it is being missed. A target
+     * repeated on every line is noise on the lines that are fine. */
+    ? s.categories.slice(0, 6).map(c => {
+        const over = c.weeklyTarget && c.spent > c.weeklyTarget;
+        return row(c.name, money(c.spent), over ? C.rose : C.t0,
+          over ? signed(c.delta) + " \u00b7 over " + money(c.weeklyTarget) + " target"
+               : (c.prior > 0 ? signed(c.delta) + " vs last week" : null));
+      }).join("")
     : '<tr><td style="font:400 13px ' + FONT + ';color:' + C.t2 + ';padding:6px 0">No spending recorded this week.</td></tr>';
 
   const invRows = [
-    row("Moved into the brokerage", money(inv.contributed), inv.contributed > 0 ? C.em : C.t0,
+    row("Into the brokerage", money(inv.contributed), inv.contributed > 0 ? C.em : C.t0,
         inv.count ? inv.count + " transfer" + (inv.count === 1 ? "" : "s") : "none this week"),
     row("Month to date", money(inv.monthToDate) + (inv.target ? " of " + money(inv.target) : ""),
         inv.target && inv.monthToDate >= inv.target ? C.em : C.gold,
         inv.target ? (inv.monthToDate >= inv.target ? "goal met" : money(inv.target - inv.monthToDate) + " short") : null),
     inv.marketMove === null
-      ? row("Market movement", "not yet measurable", C.t2, "needs a snapshot from the start of the week")
-      : row("Market movement", signed(inv.marketMove), inv.marketMove >= 0 ? C.em : C.rose,
-            inv.marketPct === null ? null : pctOf(inv.marketPct) + " on " + money(inv.balance) + ", contributions excluded")
+      ? row("Market", "not measurable yet", C.t2, "needs last Sunday's balance")
+      : row("Market", signed(inv.marketMove), inv.marketMove >= 0 ? C.em : C.rose,
+            inv.marketPct === null ? null : pctOf(inv.marketPct) + ", contributions excluded")
   ].join("");
 
   const leakRows = d.leaks.length
-    ? d.leaks.slice(0, 5).map(l => row(l.name, money(l.monthly) + "/mo", C.t0,
-        l.thirtyYear ? money(l.thirtyYear) + " over 30 years" + (l.why ? " · " + l.why : "") : l.why)).join("")
+    ? d.leaks.slice(0, 3).map(l => row(l.name, money(l.monthly) + "/mo", C.t0,
+        l.thirtyYear ? money(l.thirtyYear) + " over 30 years" + (l.why ? " \u00b7 " + l.why : "") : l.why)).join("")
     : '<tr><td style="font:400 13px ' + FONT + ';color:' + C.t2 + ';padding:6px 0;line-height:1.55">' +
-      'Nothing flagged. Recurring charges are detected from repeat patterns, so this section fills in ' +
-      'once there are a few months of history.</td></tr>';
+      'Nothing flagged yet \u2014 detecting a recurring charge takes a few months of repeats.</td></tr>';
 
   const recs = d.recommendations.length
     ? d.recommendations.map(r =>
@@ -310,8 +308,8 @@ export function renderHtml(d) {
   const sampleBanner = d.sample
     ? '<tr><td style="padding:16px 22px 0"><div style="background:rgba(229,104,106,.1);' +
       'border:1px solid rgba(229,104,106,.35);border-radius:8px;padding:11px 13px;font:600 12px ' + FONT +
-      ';color:' + C.rose + ';line-height:1.5">SAMPLE — illustrative figures, not your accounts. ' +
-      'Shown so the layout can be reviewed before there is enough history to fill it.</div></td></tr>'
+      ';color:' + C.rose + ';line-height:1.5">SAMPLE — illustrative figures, not your accounts.' +
+      '</div></td></tr>'
     : "";
 
   const caveat = d.coverage.hasPriorWeek ? "" :
@@ -319,8 +317,7 @@ export function renderHtml(d) {
       '<div style="background:rgba(212,175,97,.08);border:1px solid rgba(212,175,97,.25);border-radius:8px;' +
         'padding:11px 13px;font:400 12px ' + FONT + ';color:' + C.t1 + ';line-height:1.55">' +
         'Tracking started ' + esc(dayName(d.coverage.trackFrom || d.window.from)) +
-        ', so there is no earlier week to compare against yet. Week-over-week figures fill in from the ' +
-        'second full week onward.</div></td></tr>';
+        ' \u2014 no earlier week to compare against yet.</div></td></tr>';
 
   return '<!doctype html>\n<html><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -343,10 +340,9 @@ export function renderHtml(d) {
         '">Weekly review</div>' +
       '<div style="font:700 19px ' + FONT + ';color:' + C.t0 + ';padding-top:5px">' + esc(d.label) + '</div>' +
       '<div style="font:400 13px ' + FONT + ';color:' + C.t1 + ';padding-top:7px;line-height:1.55">' +
-        'You spent <b style="color:' + C.t0 + '">' + esc(money(s.total)) + '</b>, moved ' +
+        'Spent <b style="color:' + C.t0 + '">' + esc(money(s.total)) + '</b>, invested ' +
         '<b style="color:' + (inv.contributed > 0 ? C.em : C.t0) + '">' + esc(money(inv.contributed)) +
-        '</b> into the brokerage, and net worth ' +
-        (n.delta === null ? "stands at" : n.delta >= 0 ? "rose to" : "fell to") +
+        '</b>, net worth ' + (n.delta === null ? "at" : n.delta >= 0 ? "up to" : "down to") +
         ' <b style="color:' + C.t0 + '">' + esc(money(n.now)) + '</b>.' +
       '</div></td></tr>' +
     sampleBanner + caveat +
@@ -354,8 +350,10 @@ export function renderHtml(d) {
     section("Net worth",
       '<div style="font:700 30px ' + MONO + ';color:' + C.t0 + ';letter-spacing:-.02em">' + esc(money(n.now)) + '</div>' +
       netLine +
-      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding-top:8px">' +
-        row("Assets", money(n.assets)) + row("Liabilities", money(n.liabilities)) + '</table>') +
+      /* Two rows for two numbers that are always read together is a table for
+         no reason. One line says the same thing. */
+      '<div style="font:400 12px ' + FONT + ';color:' + C.t2 + ';padding-top:7px">' +
+        esc(money(n.assets)) + ' in assets, ' + esc(money(n.liabilities)) + ' owed</div>') +
 
     section("Spending by category",
       '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + catRows +
@@ -369,12 +367,11 @@ export function renderHtml(d) {
 
     section("What to do about it", recs) +
 
-    '<tr><td style="padding:22px">' +
-      '<div style="border-top:1px solid ' + C.line + ';padding-top:14px;font:400 11px ' + FONT + ';color:' +
+    '<tr><td style="padding:20px 22px">' +
+      '<div style="border-top:1px solid ' + C.line + ';padding-top:12px;font:400 11px ' + FONT + ';color:' +
         C.t2 + ';line-height:1.6">' +
-        'Figures come from your linked accounts as of ' + esc(dayName(d.window.to)) + '. Institutions settle on ' +
-        'their own schedule, so a late-posting charge can land in next week&rsquo;s figures. ' +
-        'This is a record of what happened, not investment advice.' +
+        'From your linked accounts as of ' + esc(dayName(d.window.to)) + '. A late-posting charge can ' +
+        'land in next week&rsquo;s figures. Not investment advice.' +
       '</div></td></tr>' +
 
     '</table></td></tr></table></body></html>';
@@ -393,27 +390,27 @@ export function renderText(d) {
 
   L.push("NET WORTH",
          "  " + money(n.now) + (n.delta === null ? "" : "   " + signed(n.delta) + " this week"),
-         "  Assets " + money(n.assets) + " / Liabilities " + money(n.liabilities), "");
+         "  " + money(n.assets) + " in assets, " + money(n.liabilities) + " owed", "");
 
   L.push("SPENDING BY CATEGORY");
   if (!s.categories.length) L.push("  Nothing recorded this week.");
-  for (const c of s.categories.slice(0, 10))
-    L.push("  " + c.name.padEnd(18) + money(c.spent).padStart(9) +
+  for (const c of s.categories.slice(0, 6)) {
+    const over = c.weeklyTarget && c.spent > c.weeklyTarget;
+    L.push("  " + c.name.padEnd(16) + money(c.spent).padStart(9) +
            (c.prior > 0 ? "   " + signed(c.delta) + " vs last week" : "") +
-           (c.weeklyTarget ? "   target " + money(c.weeklyTarget) + "/wk" : ""));
+           (over ? "   over " + money(c.weeklyTarget) + " target" : ""));
+  }
   L.push("  " + "TOTAL".padEnd(18) + money(s.total).padStart(9), "");
 
   L.push("INVESTING",
-         "  Into brokerage this week   " + money(inv.contributed) +
+         "  Into the brokerage " + money(inv.contributed) +
            " (" + inv.count + " transfer" + (inv.count === 1 ? "" : "s") + ")",
-         "  Month to date              " + money(inv.monthToDate) +
-           (inv.target ? " of " + money(inv.target) : ""),
-         "  Market movement            " +
-           (inv.marketMove === null ? "not yet measurable" : signed(inv.marketMove)), "");
+         "  Month to date      " + money(inv.monthToDate) + (inv.target ? " of " + money(inv.target) : ""),
+         "  Market             " + (inv.marketMove === null ? "not measurable yet" : signed(inv.marketMove)), "");
 
   L.push("MONEY LEAKS");
-  if (!d.leaks.length) L.push("  Nothing flagged. Needs a few months of history to detect patterns.");
-  for (const l of d.leaks.slice(0, 5))
+  if (!d.leaks.length) L.push("  Nothing flagged yet \u2014 needs a few months of repeats to detect.");
+  for (const l of d.leaks.slice(0, 3))
     L.push("  " + l.name + " — " + money(l.monthly) + "/mo" +
            (l.thirtyYear ? ", " + money(l.thirtyYear) + " over 30 years" : ""));
   L.push("");
@@ -422,7 +419,7 @@ export function renderText(d) {
   if (!d.recommendations.length) L.push("  Nothing to flag this week.");
   for (const r of d.recommendations) L.push("  * " + r.head, "    " + r.body, "");
 
-  L.push("—", "Figures from your linked accounts. Not investment advice.");
+  L.push("—", "From your linked accounts. Not investment advice.");
   return L.join("\n");
 }
 
@@ -446,10 +443,10 @@ export function sampleDigest(now = new Date()) {
       total: 1418, prior: 1642, delta: -224, income: 3120,
       categories: [
         cat("Dining", 412, 268, 1200),
-        cat("Groceries", 336, 291, 1400),
-        cat("Shopping", 264, 402, 900),
-        cat("Transport", 178, 210, 700),
-        cat("Subscriptions", 128, 128, 400),
+        cat("Groceries", 336, 291, 1600),
+        cat("Shopping", 264, 402, 1300),
+        cat("Transport", 178, 210, 900),
+        cat("Subscriptions", 128, 128, 600),
         cat("Health", 100, 341, 500)
       ]
     },
@@ -464,16 +461,12 @@ export function sampleDigest(now = new Date()) {
       { name: "SiriusXM", monthly: 22, thirtyYear: 44700, why: "Promo rate ended", cancel: true }
     ],
     recommendations: [
-      { tone: "good", head: "Investing goal met — $5,199 this month",
-        body: "That is $199 past the $5,000 target. Raising the target is how you stop the habit drifting back down." },
-      { tone: "watch", head: "Dining up $144 on last week",
-        body: "$412 this week against $268 last. A weekly share of your target is $277." },
-      { tone: "act", head: "Cancel Adobe Creative Cloud to recover $121,900 over 30 years",
-        body: "$60 a month. Invested at your base return instead, that is what it compounds to." },
-      { tone: "watch", head: "Discover it: 334 days of 0% left on $3,698",
-        body: "Clearing it before the promo ends takes $337 a month. After that the balance starts drawing interest." },
-      { tone: "good", head: "Spending down $224 on last week",
-        body: "$1,418 against $1,642. Held for a year that is $11,648 that could be invested instead." }
+      { tone: "act", head: "Cancel Adobe Creative Cloud",
+        body: "$60 a month — $121,900 over 30 years if invested instead." },
+      { tone: "watch", head: "Dining up $144",
+        body: "$412 against $268 last week. Target $277/wk." },
+      { tone: "good", head: "Investing goal met — $5,199 of $5,000",
+        body: "$199 past target. Worth raising it." }
     ]
   };
 }
