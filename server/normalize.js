@@ -146,6 +146,14 @@ const clean = n => String(n || "").replace(/[\uFFFD\u0000-\u001F]+/g, "").replac
 
 const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
 
+/* Payments per year. Cadence is not cosmetic: quarterly PIK compounds four times
+ * a year rather than twelve, and a quarterly coupon is three months of cash you
+ * cannot reinvest until it lands. */
+export const PER_YEAR = { monthly: 12, quarterly: 4, semiannual: 2, annual: 1 };
+export const freqOf = f => PER_YEAR[f] || 12;
+export const freqLabel = f => ({ monthly: "monthly", quarterly: "quarterly",
+  semiannual: "twice a year", annual: "annually" })[f] || "monthly";
+
 /* ---------- main ---------- */
 export function buildState({ items, accounts, transactions, liabilities, recurring, store, today = new Date() }) {
   const settings = store.settings;
@@ -228,53 +236,44 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
     const ms = new Date(d + "T00:00:00") - today;
     return Math.max(0, ms / (365.25 * 86400000));
   };
+  /* A private position has no market price. With no sponsor mark, the value is
+   * carried straight-line between the capital you put in and the expected exit
+   * value, by how far through the hold you are. It is a modelled figure, not a
+   * valuation -- a real appraisal should always replace it, which is what
+   * currentValue does. */
+  /* A private position has no market price. With no sponsor mark, the value is
+   * carried straight-line between the capital you put in and the expected exit
+   * value, by how far through the hold you are. It is a modelled figure, not a
+   * valuation -- a real appraisal should always replace it, which is what
+   * currentValue does. */
   const realEstate = (store.realEstate || []).filter(p => p.status !== "exited").map(p => {
     const invested = Number(p.invested) || 0;
-    const dist = Number(p.distributions) || 0;
     const mult = Number(p.multiple) || 0;
+    const exitValue = invested * mult;
     const entered = p.currentValue == null || p.currentValue === "" ? null : Number(p.currentValue);
 
-    /* GP economics: the sponsor also earns promote on profit above the LP pref.
-     * Promote is realised at exit, so it is deliberately excluded from the
-     * interim mark below and added only to projected proceeds. */
-    const grossExit = invested * mult;
-    const promote = p.kind === "gp" && p.promotePct
-      ? Math.max(0, grossExit - invested * (1 + (Number(p.prefRate) || 0))) * (Number(p.promotePct) / 100)
-      : 0;
-
-    /* Interim mark. With no sponsor NAV, the convention is to accrete the
-     * capital at the deal's own implied IRR between entry and exit:
-     *   value(t) = invested x multiple^(t/T)
-     * It is a modelled figure, not a valuation -- a real appraisal or a sponsor
-     * statement should always replace it, which is what `entered` does. */
     const entry = p.entryDate ? new Date(p.entryDate + "T00:00:00") : null;
     const exit = p.exitDate ? new Date(p.exitDate + "T00:00:00") : null;
-    const totalYears = entry && exit ? (exit - entry) / (365.25 * 86400000) : null;
+    const holdYears = entry && exit ? (exit - entry) / (365.25 * 86400000) : null;
     const heldYears = entry ? Math.max(0, (today - entry) / (365.25 * 86400000)) : null;
-    const impliedIrr = totalYears > 0 && mult > 0 ? Math.pow(mult, 1 / totalYears) - 1 : null;
+    const progress = holdYears > 0 && heldYears != null ? Math.min(1, heldYears / holdYears) : null;
 
     let mark, markSource;
     if (entered != null && entered > 0) { mark = entered; markSource = "entered"; }
-    else if (totalYears > 0 && mult > 0 && heldYears != null) {
-      const frac = Math.min(1, heldYears / totalYears);
-      mark = Math.max(0, invested * Math.pow(mult, frac) - dist);
-      markSource = "accreted";
-    } else { mark = Math.max(0, invested - dist); markSource = "cost"; }
+    else if (progress != null && exitValue > 0) {
+      mark = invested + (exitValue - invested) * progress;
+      markSource = "estimated";
+    } else { mark = invested; markSource = "cost"; }
 
     return {
       id: p.id, kind: p.kind, name: p.name,
-      invested, mark, markSource, distributions: dist, multiple: mult,
-      prefRate: Number(p.prefRate) || 0,
-      promotePct: Number(p.promotePct) || 0,
+      invested, mark, markSource, multiple: mult, exitValue,
       entryDate: p.entryDate || null,
       exitDate: p.exitDate || null,
-      holdYears: totalYears,
-      heldYears,
-      impliedIrr,
+      holdYears, heldYears, progress,
       yearsToExit: yearsUntil(p.exitDate),
-      projectedProceeds: Math.max(0, grossExit + promote - dist),
-      promote,
-      unrealisedGain: mark - invested + dist
+      projectedProceeds: exitValue,
+      unrealisedGain: mark - invested
     };
   });
   for (const p of realEstate) assets += p.mark;
@@ -291,14 +290,17 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
     const heldYears = start ? Math.max(0, (today - start) / (365.25 * 86400000)) : 0;
     const termYears = start && mat ? Math.max(0, (mat - start) / (365.25 * 86400000)) : null;
     const structure = n.structure || "interest-only";
+    const freq = n.payFrequency || "monthly";
+    const per = freqOf(freq);                           // payments per year
 
     let mark, atMaturity;
     if (structure === "accrued") {
-      mark = principal * Math.pow(1 + rate, heldYears);
-      atMaturity = termYears != null ? principal * Math.pow(1 + rate, termYears) : mark;
+      /* PIK compounds at the payment cadence, not annually. */
+      mark = principal * Math.pow(1 + rate / per, per * heldYears);
+      atMaturity = termYears != null ? principal * Math.pow(1 + rate / per, per * termYears) : mark;
     } else if (structure === "amortizing") {
-      const i = rate / 12, nTot = termYears != null ? Math.round(termYears * 12) : 0;
-      const nEl = Math.min(nTot, Math.round(heldYears * 12));
+      const i = rate / per, nTot = termYears != null ? Math.round(termYears * per) : 0;
+      const nEl = Math.min(nTot, Math.round(heldYears * per));
       if (i > 0 && nTot > 0) {
         const pay = principal * i / (1 - Math.pow(1 + i, -nTot));
         const g = Math.pow(1 + i, nEl);
@@ -312,11 +314,21 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
     return {
       id: n.id, name: n.name, borrower: n.borrower || "",
       principal, rate, structure, received,
+      payFrequency: freq,
+      paymentsPerYear: per,
+      payLabel: freqLabel(freq),
       startDate: n.startDate || null, maturityDate: n.maturityDate || null,
       heldYears, termYears,
       yearsToMaturity: yearsUntil(n.maturityDate),
       mark, atMaturity,
-      annualIncome: structure === "interest-only" ? principal * rate : 0
+      annualIncome: structure === "interest-only" ? principal * rate : 0,
+      perPayment: structure === "interest-only"
+        ? (principal * rate) / per
+        : structure === "amortizing" && termYears
+          ? (rate > 0
+              ? principal * (rate / per) / (1 - Math.pow(1 + rate / per, -Math.round(termYears * per)))
+              : principal / Math.round(termYears * per))
+          : 0
     };
   });
   for (const n of notes) assets += n.mark;
@@ -327,17 +339,15 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
   const crypto = (store.crypto || []).map(c => {
     const qty = Number(c.quantity) || 0;
     const px = Number(c.unitPrice) || 0;
-    const basis = Number(c.costBasis) || 0;
     const mark = qty * px;
     return {
       id: c.id, name: c.name, symbol: (c.symbol || "").toUpperCase(),
-      quantity: qty, unitPrice: px, costBasis: basis, mark,
+      quantity: qty, unitPrice: px, mark,
       growthRate: Number(c.growthRate) || 0,
       priceUpdated: c.priceUpdated || null,
       priceSource: c.priceSource || null,
       change24h: c.change24h ?? null,
-      coingeckoId: c.coingeckoId || null,
-      gain: mark - basis
+      coingeckoId: c.coingeckoId || null
     };
   });
   for (const c of crypto) assets += c.mark;

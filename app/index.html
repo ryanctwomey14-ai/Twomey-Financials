@@ -855,11 +855,8 @@ details[open] summary::before{content:"\2212 "}
           <div class="field"><label for="reInvested">Capital in</label><input id="reInvested" type="number" min="0" step="1000" placeholder="100000"></div>
           <div class="field"><label for="reEntry">Entry date</label><input id="reEntry" type="date"></div>
           <div class="field"><label for="reMark">Current mark</label><input id="reMark" type="number" min="0" step="1000" placeholder="blank = estimate"></div>
-          <div class="field"><label for="reDist">Distributions</label><input id="reDist" type="number" min="0" step="500" placeholder="0"></div>
           <div class="field"><label for="reMult">Exit multiple</label><input id="reMult" type="number" min="0" step="0.05" placeholder="2.0"></div>
           <div class="field"><label for="reExit">Exit date</label><input id="reExit" type="date"></div>
-          <div class="field"><label for="rePref">Pref %</label><input id="rePref" type="number" min="0" step="0.5" placeholder="8"></div>
-          <div class="field" id="rePromoteWrap" hidden><label for="rePromote">Promote %</label><input id="rePromote" type="number" min="0" step="1" placeholder="20"></div>
           <div class="field" style="justify-content:flex-end"><button class="btn sm gold" id="reAdd"><svg><use href="#i-plus"/></svg>Add position</button></div>
         </div>
       </details>
@@ -898,7 +895,9 @@ details[open] summary::before{content:"\2212 "}
           <div class="field"><label for="nPrincipal">Principal</label><input id="nPrincipal" type="number" min="0" step="1000" placeholder="50000"></div>
           <div class="field"><label for="nRate">Rate %</label><input id="nRate" type="number" min="0" step="0.25" placeholder="11"></div>
           <div class="field"><label for="nStructure">Interest</label>
-            <select id="nStructure"><option value="interest-only">Paid monthly</option><option value="accrued">Accrues (PIK)</option><option value="amortizing">Amortising</option></select></div>
+            <select id="nStructure"><option value="interest-only">Paid out</option><option value="accrued">Accrues (PIK)</option><option value="amortizing">Amortising</option></select></div>
+          <div class="field"><label for="nFreq">Frequency</label>
+            <select id="nFreq"><option value="monthly">Monthly</option><option value="quarterly" selected>Quarterly</option><option value="semiannual">Twice a year</option><option value="annual">Annually</option></select></div>
           <div class="field"><label for="nStart">Start date</label><input id="nStart" type="date"></div>
           <div class="field"><label for="nMaturity">Maturity</label><input id="nMaturity" type="date"></div>
           <div class="field" style="justify-content:flex-end"><button class="btn sm gold" id="nAdd"><svg><use href="#i-plus"/></svg>Add note</button></div>
@@ -918,7 +917,6 @@ details[open] summary::before{content:"\2212 "}
           <div class="field"><label for="cSymbol">Symbol</label><input id="cSymbol" type="text" placeholder="BTC"></div>
           <div class="field"><label for="cName">Name</label><input id="cName" type="text" placeholder="Bitcoin"></div>
           <div class="field"><label for="cQty">Quantity</label><input id="cQty" type="number" min="0" step="0.00000001" placeholder="0.75"></div>
-          <div class="field"><label for="cBasis">Cost basis</label><input id="cBasis" type="number" min="0" step="100" placeholder="32000"></div>
           <div class="field"><label for="cGrowth">Assumed growth %</label><input id="cGrowth" type="number" step="1" placeholder="0"></div>
           <div class="field" style="justify-content:flex-end"><button class="btn sm gold" id="cAdd"><svg><use href="#i-plus"/></svg>Add holding</button></div>
         </div>
@@ -1700,6 +1698,18 @@ document.addEventListener("click", async e => {
    smoothly, so they are modelled as lumps rather than folded into the balance. */
 function altsAt(year, r){
   let v = 0;
+  /* Cash arriving on a schedule can only be reinvested from the date it lands,
+     so it is compounded as an annuity at its own cadence rather than up front. */
+  const reinvested = (perPayment, perYear, payUntil) => {
+    if (!perPayment || !perYear) return 0;
+    const payYears = Math.max(0, Math.min(year, payUntil));
+    const periods = Math.floor(payYears * perYear);
+    if (!periods) return 0;
+    const i = r / perYear;
+    const grown = i > 0 ? perPayment * ((Math.pow(1 + i, periods) - 1) / i) : perPayment * periods;
+    return grown * Math.pow(1 + r, Math.max(0, year - payYears));
+  };
+
   for (const p of REAL_ESTATE){
     const y = p.yearsToExit;
     if (y == null){ v += p.mark; continue; }
@@ -1707,6 +1717,9 @@ function altsAt(year, r){
   }
   for (const n of NOTES){
     const y = n.yearsToMaturity;
+    /* Interest paid out is cash in hand; PIK is already inside the mark. */
+    if (n.structure === "interest-only")
+      v += reinvested(n.perPayment, n.paymentsPerYear, y == null ? year : y);
     if (y == null){ v += n.mark; continue; }
     v += year >= y ? n.atMaturity * Math.pow(1 + r, year - y) : n.mark;
   }
@@ -1731,22 +1744,19 @@ function altsAt(year, r){
   const re = $("#reList");
   if (re) re.innerHTML = REAL_ESTATE.length ? REAL_ESTATE.map(p => {
     const gain = p.unrealisedGain;
+    const pct = p.progress != null ? Math.round(p.progress * 100) : null;
     return `<div class="hold">
       <span class="chip ${p.kind === "gp" ? "gold" : ""}" style="margin-top:2px">${p.kind.toUpperCase()}</span>
       <span class="hold-tx">
         <b>${p.name}</b>
-        <span class="hold-meta">${usd(p.invested)} in \u00b7 ${p.multiple ? p.multiple.toFixed(2) + "x target" : "no target"}${
-          p.exitDate ? ` \u00b7 exit ${new Date(p.exitDate+"T00:00:00").toLocaleDateString("en-US",{month:"short",year:"numeric"})}${p.yearsToExit != null ? ` (${p.yearsToExit.toFixed(1)}y)` : ""}` : " \u00b7 no exit date"}${
-          p.kind === "gp" && p.promotePct ? ` \u00b7 ${p.promotePct}% promote over ${(p.prefRate*100).toFixed(0)}% pref` : ""}</span>
-        <span class="hold-meta">Projects to <b style="color:var(--gold)">${short(p.projectedProceeds)}</b> at exit${
-          p.impliedIrr != null ? ` \u00b7 ${(p.impliedIrr*100).toFixed(1)}% implied IRR` : ""}${
-          p.distributions ? ` \u00b7 ${usd(p.distributions)} distributed` : ""}</span>
+        <span class="hold-meta">${usd(p.invested)} in \u00b7 ${p.multiple ? p.multiple.toFixed(2) + "x" : "no multiple"} \u2192 <b style="color:var(--gold)">${short(p.exitValue)}</b> at exit${
+          p.exitDate ? ` ${new Date(p.exitDate+"T00:00:00").toLocaleDateString("en-US",{month:"short",year:"numeric"})}` : ""}</span>
         <span class="hold-meta" style="color:var(--t3)">${
           p.markSource === "entered" ? "Mark you entered"
-          : p.markSource === "accreted" ? `Estimated &mdash; accreted at the deal IRR, ${p.heldYears.toFixed(1)} of ${p.holdYears.toFixed(1)} years held`
-          : "Held at cost &mdash; add an entry date and exit multiple to estimate a mark"}</span>
+          : p.markSource === "estimated" ? `Estimated \u2014 ${pct}% through a ${p.holdYears.toFixed(1)}-year hold`
+          : "Held at cost \u2014 add entry and exit dates plus a multiple to estimate"}</span>
       </span>
-      <span class="hold-v"><b>${usd(p.mark)}${p.markSource === "accreted" ? `<span style="color:var(--t3);font-size:9px"> est</span>` : ""}</b><span class="${gain>=0?"gain":"loss"}">${gain>=0?"+":"\u2212"}${usd(Math.abs(gain))}</span></span>
+      <span class="hold-v"><b>${usd(p.mark)}${p.markSource === "estimated" ? `<span style="color:var(--t3);font-size:9px"> est</span>` : ""}</b><span class="${gain>=0?"gain":"loss"}">${gain>=0?"+":"\u2212"}${usd(Math.abs(gain))}</span></span>
       ${LIVE ? `<button class="icon-btn hold-x" data-re-del="${p.id}" title="Remove ${p.name}"><svg><use href="#i-x"/></svg></button>` : ""}
     </div>`;
   }).join("") : `<p class="empty">No positions yet. GP and LP interests are invisible to Plaid, so add them here and they count toward net worth and land as lumps on the trajectory at their exit dates.</p>`;
@@ -1768,12 +1778,13 @@ function altsAt(year, r){
 
   const nl = $("#noteList");
   if (nl) nl.innerHTML = NOTES.length ? NOTES.map(n => {
-    const label = { "interest-only":"interest paid monthly", "accrued":"interest accrues", "amortizing":"amortising" }[n.structure];
+    const label = { "interest-only":"interest paid", "accrued":"interest accrues", "amortizing":"amortising" }[n.structure];
     return `<div class="hold">
       <span class="chip" style="margin-top:2px">NOTE</span>
       <span class="hold-tx">
         <b>${n.name}</b>
-        <span class="hold-meta">${usd(n.principal)} at ${(n.rate*100).toFixed(2)}% \u00b7 ${label}${n.borrower ? " \u00b7 " + n.borrower : ""}</span>
+        <span class="hold-meta">${usd(n.principal)} at ${(n.rate*100).toFixed(2)}% \u00b7 ${label} ${n.payLabel}${n.borrower ? " \u00b7 " + n.borrower : ""}</span>
+        ${n.perPayment ? `<span class="hold-meta" style="color:var(--em)">${usd(Math.round(n.perPayment))} ${n.payLabel}</span>` : ""}
         <span class="hold-meta">${n.maturityDate
           ? `Matures ${new Date(n.maturityDate+"T00:00:00").toLocaleDateString("en-US",{month:"short",year:"numeric"})}${n.yearsToMaturity!=null?` (${n.yearsToMaturity.toFixed(1)}y)`:""} \u00b7 returns <b style="color:var(--gold)">${short(n.atMaturity)}</b>`
           : "No maturity date set"}${n.annualIncome ? ` \u00b7 ${usd(Math.round(n.annualIncome))}/yr income` : ""}</span>
@@ -1790,13 +1801,14 @@ function altsAt(year, r){
       <span class="hold-tx">
         <b>${c.name}</b>
         <span class="hold-meta">${c.quantity} at ${usd(c.unitPrice, 2)}${
-          c.change24h != null ? ` \u00b7 <span style="color:${c.change24h>=0?"var(--em)":"var(--rose)"}">${c.change24h>=0?"+":""}${c.change24h.toFixed(2)}% 24h</span>` : ""}</span>
+          c.change24h != null ? ` \u00b7 ${c.change24h>=0?"+":""}${c.change24h.toFixed(2)}% 24h` : ""}</span>
         <span class="hold-meta" style="color:var(--t3)">${
           c.priceSource === "coingecko" ? `Live price \u00b7 ${new Date(c.priceUpdated).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}`
           : c.priceSource === "manual" ? "Price entered by hand"
           : "No price yet \u2014 press Refresh"}${c.growthRate ? ` \u00b7 projected at ${(c.growthRate*100).toFixed(0)}%/yr` : " \u00b7 held flat in the projection"}</span>
       </span>
-      <span class="hold-v"><b>${usd(c.mark)}</b><span class="${c.gain>=0?"gain":"loss"}">${c.gain>=0?"+":"\u2212"}${usd(Math.abs(c.gain))}</span></span>
+      <span class="hold-v"><b>${usd(c.mark)}</b><span class="${(c.change24h ?? 0)>=0?"gain":"loss"}">${
+        c.change24h != null ? `${c.change24h>=0?"+":"\u2212"}${usd(Math.abs(c.mark * c.change24h/100))} today` : "\u2014"}</span></span>
       ${LIVE ? `<button class="icon-btn hold-x" data-crypto-del="${c.id}" title="Remove ${c.name}"><svg><use href="#i-x"/></svg></button>` : ""}
     </div>`).join("") : `<p class="empty">No crypto added. Enter a symbol and quantity &mdash; the price is fetched live, so you never maintain it by hand.</p>`;
 
@@ -1808,8 +1820,6 @@ function altsAt(year, r){
   if ($("#cryptoChip")) $("#cryptoChip").textContent = CRYPTO.length ? usd(CRYPTO.reduce((s,c)=>s+c.mark,0)) : "None";
 }
 
-$("#reKind")?.addEventListener("change", e => { $("#rePromoteWrap").hidden = e.target.value !== "gp"; });
-
 const clearFields = ids => ids.forEach(s => { const el = $(s); if (el) el.value = ""; });
 
 $("#reAdd")?.addEventListener("click", async () => {
@@ -1819,11 +1829,9 @@ $("#reAdd")?.addEventListener("click", async () => {
     await api("/api/real-estate", { method:"POST", body: JSON.stringify({
       kind: $("#reKind").value, name: $("#reName").value, invested: $("#reInvested").value,
       currentValue: $("#reMark").value === "" ? null : $("#reMark").value,
-      entryDate: $("#reEntry").value || null, distributions: $("#reDist").value,
-      multiple: $("#reMult").value, exitDate: $("#reExit").value || null,
-      prefRate: $("#rePref").value ? Number($("#rePref").value)/100 : 0,
-      promotePct: $("#rePromote")?.value || 0 })});
-    clearFields(["#reName","#reInvested","#reEntry","#reMark","#reDist","#reMult","#reExit","#rePref","#rePromote"]);
+      entryDate: $("#reEntry").value || null,
+      multiple: $("#reMult").value, exitDate: $("#reExit").value || null })});
+    clearFields(["#reName","#reInvested","#reEntry","#reMark","#reMult","#reExit"]);
     await refresh();
   } catch (e){ banner("warn", e.message); }
 });
@@ -1850,6 +1858,7 @@ $("#nAdd")?.addEventListener("click", async () => {
     await api("/api/notes", { method:"POST", body: JSON.stringify({
       name: $("#nName").value, borrower: $("#nBorrower").value, principal: $("#nPrincipal").value,
       rate: $("#nRate").value ? Number($("#nRate").value)/100 : 0, structure: $("#nStructure").value,
+      payFrequency: $("#nFreq").value,
       startDate: $("#nStart").value || null, maturityDate: $("#nMaturity").value || null })});
     clearFields(["#nName","#nBorrower","#nPrincipal","#nRate","#nStart","#nMaturity"]);
     await refresh();
@@ -1863,9 +1872,8 @@ $("#cAdd")?.addEventListener("click", async () => {
   try {
     const r = await api("/api/crypto", { method:"POST", body: JSON.stringify({
       symbol: sym, name: $("#cName").value || sym, quantity: $("#cQty").value,
-      costBasis: $("#cBasis").value,
       growthRate: $("#cGrowth").value ? Number($("#cGrowth").value)/100 : 0 })});
-    clearFields(["#cSymbol","#cName","#cQty","#cBasis","#cGrowth"]);
+    clearFields(["#cSymbol","#cName","#cQty","#cGrowth"]);
     await refresh();
     const added = r.find(x => (x.symbol||"").toUpperCase() === sym.toUpperCase());
     if (added && !added.unitPrice) banner("warn", `<b>${sym.toUpperCase()}</b> was added but no price came back. Check the ticker, or press Refresh.`);

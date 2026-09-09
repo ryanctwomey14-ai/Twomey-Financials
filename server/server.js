@@ -491,10 +491,7 @@ app.post("/api/real-estate", (req, res) => {
     /* Blank means "estimate it" -- do not silently substitute cost. */
     currentValue: (b.currentValue === "" || b.currentValue == null) ? null : num(b.currentValue),
     entryDate: b.entryDate || null,
-    distributions: num(b.distributions),
     multiple: num(b.multiple, 1),
-    prefRate: num(b.prefRate),
-    promotePct: num(b.promotePct),
     exitDate: b.exitDate || null,
     status: b.status || "active",
     note: (b.note || "").trim()
@@ -524,6 +521,7 @@ app.post("/api/notes", (req, res) => {
     principal: num(b.principal),
     rate: num(b.rate),
     structure: ["interest-only", "accrued", "amortizing"].includes(b.structure) ? b.structure : "interest-only",
+    payFrequency: ["monthly", "quarterly", "semiannual", "annual"].includes(b.payFrequency) ? b.payFrequency : "monthly",
     startDate: b.startDate || null,
     maturityDate: b.maturityDate || null,
     received: num(b.received),
@@ -582,7 +580,6 @@ app.post("/api/crypto", async (req, res) => {
     name: (b.name || b.symbol).trim(),
     symbol: (b.symbol || "").trim().toUpperCase(),
     quantity: num(b.quantity),
-    costBasis: num(b.costBasis),
     growthRate: num(b.growthRate),
     coingeckoId: (b.coingeckoId || "").trim() || null
   };
