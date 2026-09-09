@@ -1685,7 +1685,11 @@ function renderTxns(f){
   const foot = $("#txnFoot");
   if (foot && TRACK_FROM){
     const d = new Date(TRACK_FROM + "T00:00:00").toLocaleDateString("en-US", { day:"numeric", month:"long", year:"numeric" });
-    foot.innerHTML = `Tracking from <b>${d}</b> &mdash; nothing before that date is stored or counted. ` +
+    /* Contributions are the one exception to the window, so the copy has to say
+       so -- otherwise the two Morgan Stanley rows read as a bug. */
+    const early = TXNS.filter(t => t.contribution && t.date < TRACK_FROM).length;
+    foot.innerHTML = `Tracking spending from <b>${d}</b>. ` +
+      (early ? `${early} earlier brokerage transfer${early===1?" is":"s are"} shown too, so this month's investing total is whole. ` : "") +
       `Change a category to move spending into its budget line; you will be offered the same rule for every other charge from that merchant.`;
   }
   const rows = TXNS.filter(t => f==="all" || (f==="flag"&&t.flag) || (f==="sub"&&t.sub));

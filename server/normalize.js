@@ -462,7 +462,12 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
       .some(v => String(v || "").toUpperCase().includes(p)));
   const txns = transactions
     .filter(t => !t.pending && !hidden.has(t.transaction_id) && !hiddenAccounts.has(t.account_id))
-    .filter(t => inWindow(t.date))
+    /* Brokerage transfers are exempt from the tracking window. The window is a
+     * fresh start for spending; a contribution that funds the month's investing
+     * total has to be visible in the feed, or the tile cites a row nobody can
+     * find. Nothing floods in: older contributions only exist here if they were
+     * imported deliberately. */
+    .filter(t => inWindow(t.date) || looksLikeContribution(t))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 400)
     .map(t => {

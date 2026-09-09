@@ -266,8 +266,12 @@ async function syncItem(itemId) {
      * date, older rows are dropped on ingest rather than stored and filtered,
      * so the file does not slowly refill with data the user deleted. */
     const from = st.settings.trackFrom || null;
+    /* A row already in the file stays, whatever its date. Otherwise Plaid
+     * re-sending an edit to a deliberately imported pre-window row would delete
+     * it: keep drops the old copy, and the date filter refuses the new one. */
+    const held = new Set((st.transactions || []).map(t => t.transaction_id));
     const fresh = [...page.added, ...page.modified]
-      .filter(t => !from || String(t.date) >= from)
+      .filter(t => !from || String(t.date) >= from || held.has(t.transaction_id))
       .map(t => ({ ...t, itemId }));
     st.transactions = [...keep, ...fresh];
 
