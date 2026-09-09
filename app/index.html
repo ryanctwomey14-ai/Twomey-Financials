@@ -1,3 +1,9 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0A0D0F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Twomey Household Wealth Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -342,7 +348,8 @@ input[type=range]::-moz-range-thumb{
 input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(212,175,97,.32)}
 
 /* ================= LISTS / TABLES ================= */
-.tw{overflow-x:auto}
+.tw-wrap{position:relative;min-width:0;max-width:100%}
+.tw{overflow-x:auto;min-width:0;max-width:100%}
 table{border-collapse:collapse;width:100%;min-width:540px;font-size:12.5px}
 thead th{
   font-family:"JetBrains Mono",monospace;font-size:9.5px;font-weight:500;letter-spacing:.14em;
@@ -649,14 +656,14 @@ details[open] summary::before{content:"\2212 "}
 <!-- ============ LEFT RAIL ============ -->
 <nav class="rail" aria-label="Primary">
   <div class="rail-mark" aria-hidden="true">T</div>
-  <button class="rail-btn" aria-current="page" data-go="top"><svg><use href="#i-grid"/></svg><span class="rail-tip">Overview</span><span class="sr">Overview</span></button>
-  <button class="rail-btn" data-go="accounts"><svg><use href="#i-wallet"/></svg><span class="rail-tip">Accounts</span><span class="sr">Accounts</span></button>
-  <button class="rail-btn" data-go="leaks"><svg><use href="#i-scissors"/></svg><span class="rail-tip">Money leaks</span><span class="sr">Money leaks</span></button>
-  <button class="rail-btn" data-go="projection"><svg><use href="#i-trend"/></svg><span class="rail-tip">Projections</span><span class="sr">Projections</span></button>
-  <button class="rail-btn" data-go="holdings"><svg><use href="#i-bank"/></svg><span class="rail-tip">Holdings</span><span class="sr">Holdings</span></button>
-  <button class="rail-btn" data-go="promos"><svg><use href="#i-clock"/></svg><span class="rail-tip">0% promo clocks</span><span class="sr">0% promo clocks</span></button>
+  <button class="rail-btn" aria-current="page" data-short="Overview" data-go="top"><svg><use href="#i-grid"/></svg><span class="rail-tip">Overview</span><span class="sr">Overview</span></button>
+  <button class="rail-btn" data-short="Accounts" data-go="accounts"><svg><use href="#i-wallet"/></svg><span class="rail-tip">Accounts</span><span class="sr">Accounts</span></button>
+  <button class="rail-btn" data-short="Leaks" data-go="leaks"><svg><use href="#i-scissors"/></svg><span class="rail-tip">Money leaks</span><span class="sr">Money leaks</span></button>
+  <button class="rail-btn" data-short="Plan" data-go="projection"><svg><use href="#i-trend"/></svg><span class="rail-tip">Projections</span><span class="sr">Projections</span></button>
+  <button class="rail-btn" data-short="Holdings" data-go="holdings"><svg><use href="#i-bank"/></svg><span class="rail-tip">Holdings</span><span class="sr">Holdings</span></button>
+  <button class="rail-btn" data-short="0% APR" data-go="promos"><svg><use href="#i-clock"/></svg><span class="rail-tip">0% promo clocks</span><span class="sr">0% promo clocks</span></button>
   <div class="rail-sp"></div>
-  <button class="rail-btn" data-go="holdings"><svg><use href="#i-gear"/></svg><span class="rail-tip">Manual holdings</span><span class="sr">Manual holdings</span></button>
+  <button class="rail-btn" data-short="Manual" data-go="holdings"><svg><use href="#i-gear"/></svg><span class="rail-tip">Manual holdings</span><span class="sr">Manual holdings</span></button>
 </nav>
 
 <div class="frame">
@@ -980,12 +987,12 @@ details[open] summary::before{content:"\2212 "}
 
     <!-- goal gap -->
     <div class="row r-8-4" style="gap:14px">
-      <div class="tw">
+      <div class="tw-wrap"><div class="tw">
         <table>
           <thead><tr><th>Horizon</th><th class="n">Worst</th><th class="n">Base</th><th class="n">Best</th><th class="n">Base vs target</th></tr></thead>
           <tbody id="horizonBody"></tbody>
         </table>
-      </div>
+      </div></div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div id="gapPanel" class="note"><svg><use href="#i-check"/></svg><div id="gapText">&mdash;</div></div>
         <div class="stat-grid" style="grid-template-columns:1fr 1fr">
@@ -1018,12 +1025,12 @@ details[open] summary::before{content:"\2212 "}
       <div class="ch">
         <div><h3>Flagged charges</h3><p class="sub">Ranked by 30-year opportunity cost at your base return</p></div>
       </div>
-      <div class="tw">
+      <div class="tw-wrap"><div class="tw">
         <table>
           <thead><tr><th>Charge</th><th>Why it is flagged</th><th class="n">Monthly</th><th class="n">30-yr cost</th></tr></thead>
           <tbody id="leakBody"></tbody>
         </table>
-      </div>
+      </div></div>
       <div class="rule"></div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap" id="leakAction">
         <div style="flex:1;min-width:180px">
@@ -1159,6 +1166,164 @@ input[type=date]:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
 body.private .nw,body.private [data-money],body.private .acct-v b,body.private .txn-v,
 body.private .metric .mv,body.private .stat b,body.private .delta-big,body.private .ctrl-val,
 body.private .fact b,body.private .bud-n,body.private td.n{filter:blur(7px);user-select:none}
+
+/* ================= MOBILE =================
+ * Layered last so it overrides without touching the desktop rules above.
+ * Two tiers: <=860px is the tablet/handset layout (bottom nav, stacked
+ * columns); <=560px is the phone tightening on top of it.
+ *
+ * The governing numbers are 44px and 16px. 44 is the smallest reliable touch
+ * target; 16 is the font size below which iOS Safari zooms the page on focus,
+ * which then leaves the layout scrolled sideways with no way back. */
+
+@media (max-width:860px){
+
+  /* --- hygiene --- */
+  html{-webkit-text-size-adjust:100%; text-size-adjust:100%}
+  body{overscroll-behavior-y:none}
+  *{-webkit-tap-highlight-color:transparent}
+  /* Momentum scrolling everywhere something scrolls, or it feels broken. */
+  .tw,.seg,.scroll-x{-webkit-overflow-scrolling:touch}
+
+  /* --- room for the fixed bottom nav ---
+   * 58px bar + the home-indicator inset + breathing space, or the last card
+   * sits permanently underneath the tabs. */
+  main{padding:14px 14px calc(88px + env(safe-area-inset-bottom))}
+  .topbar{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+
+  /* --- bottom tab bar ---
+   * Icons alone are a guessing game. The desktop hover tooltip is dead weight
+   * on a touch screen, so the short label takes its place under the icon. */
+  .rail{padding:6px 4px calc(6px + env(safe-area-inset-bottom));gap:0;
+        box-shadow:0 -12px 30px -18px rgba(0,0,0,.9)}
+  .rail-btn{position:relative;flex:1 1 0;min-width:0;height:auto;min-height:46px;width:auto;
+            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+            border-radius:11px;padding:5px 2px}
+  .rail-btn svg{width:20px;height:20px}
+  .rail-btn::after{content:attr(data-short);font-size:9px;font-weight:600;letter-spacing:.02em;
+                   line-height:1;white-space:nowrap;opacity:.85}
+  .rail-btn[aria-current="page"]::after{opacity:1}
+  /* The desktop active marker is a bar on the left edge; on a bottom tab it
+     belongs on top, or it reads as pointing at the neighbouring tab. */
+  .rail-btn[aria-current="page"]::before{top:0;left:50%;transform:translateX(-50%);
+                                         width:18px;height:2px;border-radius:0 0 3px 3px}
+
+  /* --- touch targets ---
+   * Everything tappable clears 44px. Height only: widths stay content-sized so
+   * the layout does not inflate. */
+  .btn{height:44px;padding:0 16px;font-size:13.5px}
+  .icon-btn{width:44px;height:44px}
+  .icon-btn svg{width:19px;height:19px}
+  .seg button{min-height:38px;padding:8px 14px;font-size:13px}
+  .lg{min-height:40px;padding:6px 11px}
+  /* .btn.sm and .txn-cat carry a class, so they outrank the element-level
+     rules above and have to be named directly. */
+  .btn.sm{height:40px;padding:0 14px;font-size:13px}
+  .btn.sm svg{width:15px;height:15px}
+  .cmd-open{height:44px}
+  .sync{height:44px;padding:0 13px;font-size:13px}
+  .txn-cat{font-size:16px;min-height:40px}
+
+  /* --- form controls ---
+   * 16px is not a style choice here, it is the iOS zoom threshold. */
+  input:not([type=range]),select,textarea{min-height:44px;font-size:16px;padding:10px 12px}
+  select{background-position:right 10px center}
+  .ctrl-val{font-size:15px}
+
+  /* --- sliders ---
+   * A 15px thumb is a desktop pointer target. The track is padded out so the
+   * whole strip is grabbable, not just the dot. */
+  input[type=range]{height:44px}
+  input[type=range]::-webkit-slider-runnable-track{height:6px}
+  input[type=range]::-moz-range-track{height:6px}
+  input[type=range]::-webkit-slider-thumb{width:26px;height:26px;margin-top:-10px;
+    box-shadow:0 0 0 5px rgba(212,175,97,.14),0 2px 8px rgba(0,0,0,.7)}
+  input[type=range]::-moz-range-thumb{width:26px;height:26px;
+    box-shadow:0 0 0 5px rgba(212,175,97,.14),0 2px 8px rgba(0,0,0,.7)}
+
+  /* --- segmented controls that outgrow the screen ---
+   * Scroll rather than wrap: a wrapped segment control stops reading as one
+   * control. Snap so a partial button never comes to rest half-cut. */
+  .seg{display:flex;max-width:100%;overflow-x:auto;scrollbar-width:none;
+       scroll-snap-type:x proximity;-ms-overflow-style:none}
+  .seg::-webkit-scrollbar{display:none}
+  .seg button{scroll-snap-align:start;flex:0 0 auto}
+
+  /* --- tables ---
+   * They already scroll; what was missing is any sign that they do. The fade
+   * on the right edge is that sign. */
+  .tw{position:relative;scrollbar-width:none}
+  .tw::-webkit-scrollbar{display:none}
+  .tw-wrap{position:relative}
+  .tw-wrap::after{content:"";position:absolute;top:0;right:0;bottom:0;width:34px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,var(--bg-1));opacity:.9;transition:opacity .2s var(--ease-out)}
+  .tw-wrap.at-end::after{opacity:0}
+
+  /* --- charts --- */
+  .chart-box{min-height:190px}
+  #projBox{min-height:210px}
+
+  /* --- sheets become bottom sheets ---
+   * A centred dialog on a phone puts its actions mid-screen, out of thumb
+   * reach, and animates from nowhere. Rising from the bottom edge matches
+   * where the finger already is. */
+  .scrim{place-items:end center;padding:0}
+  .sheet{max-width:100%;max-height:92dvh;border-radius:18px 18px 0 0;border-bottom:0;
+    transform:translateY(14px) scale(1);
+    padding-bottom:max(16px,env(safe-area-inset-bottom));
+    transition:transform .24s var(--ease-out),opacity .2s var(--ease-out)}
+  .scrim.on .sheet{transform:translateY(0) scale(1)}
+  /* A grab handle, because a sheet that can be dismissed should look like it. */
+  .sheet::before{content:"";display:block;width:36px;height:4px;border-radius:3px;
+    background:rgba(255,255,255,.18);margin:10px auto 2px;flex:none}
+
+  /* --- stacking --- */
+  #projRow{grid-template-columns:1fr}
+  .mrow{gap:9px}
+}
+
+@media (max-width:560px){
+  /* --- phone tightening --- */
+  main{padding-left:12px;padding-right:12px;gap:12px}
+  .card{padding:13px}
+
+  /* The hero number is the one thing worth reading from arm's length. */
+  #nwVal{font-size:clamp(30px,9.2vw,40px);letter-spacing:-.03em}
+
+  /* Two metric tiles per row beats four squeezed or one wasting a screen. */
+  .mrow{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+  /* Seven tabs across a 375px screen: trim the padding, keep the target. */
+  .rail-btn{padding:5px 0}
+  .rail-btn::after{font-size:8.5px}
+
+  /* Transaction rows: the category select and delete button were competing
+     with the amount for a share of 350px. Give the row two lines. */
+  .txn{flex-wrap:wrap;row-gap:8px;padding:11px 12px}
+  .txn-tx{min-width:0;flex:1 1 auto}
+  .txn-v{margin-left:auto}
+  /* The desktop cap of 126px is there to stop the select crowding a wide row.
+     On its own line it should use the width it has. */
+  .txn-cat{order:9;flex:1 1 auto;min-width:0;max-width:none}
+  .txn-del{order:10}
+
+  /* Tables shrink rather than force a longer sideways scroll. */
+  table{min-width:460px;font-size:12px}
+
+  .topbar{gap:8px;padding-top:9px;padding-bottom:9px}
+  .cmd-open{max-width:none}
+}
+
+/* Landscape phones are short, not narrow: the bottom bar and a tall hero
+   together leave almost no content visible. */
+@media (max-width:900px) and (orientation:landscape) and (max-height:480px){
+  .rail{padding-top:2px;padding-bottom:calc(2px + env(safe-area-inset-bottom))}
+  .rail-btn{min-height:38px}
+  .rail-btn::after{display:none}
+  main{padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+  .chart-box{min-height:150px}
+}
+
 </style>
 <script>
 (() => {
@@ -1420,6 +1585,7 @@ function drawNW(key, animate){
     ? `Recorded history, then the base case ahead \u2014 every exit reinvested at ${pct(P.ret*100)}`
     : "Assets minus liabilities, rebuilt on every sync";
   attachHover();
+  wireScrollFades();
 }
 
 function attachHover(){
@@ -1660,6 +1826,37 @@ function renderQuickActions(S){
       <span class="qa-tx"><b>${a.title}</b><span>${a.sub}</span></span>
       <svg class="qa-go"><use href="#i-chev"/></svg>
     </button>`).join("");
+}
+
+/* ---------------- touch behaviour ----------------
+ * The edge fade on a scrolling table is a promise that there is more to the
+ * right. It has to retract at the end, or it lies. */
+function wireScrollFades(){
+  $$(".tw-wrap").forEach(w => {
+    const sc = w.querySelector(".tw"); if (!sc || w.dataset.faded) return;
+    w.dataset.faded = "1";
+    const sync = () => {
+      const scrollable = sc.scrollWidth > sc.clientWidth + 1;
+      const atEnd = sc.scrollLeft + sc.clientWidth >= sc.scrollWidth - 2;
+      w.classList.toggle("at-end", !scrollable || atEnd);
+    };
+    sc.addEventListener("scroll", sync, { passive: true });
+    new ResizeObserver(sync).observe(sc);
+    sync();
+  });
+}
+
+/* A sheet open over a scrolling page lets the page move underneath it, which
+ * on a phone reads as the sheet drifting. Freeze the body while one is open. */
+function lockScrollWhileSheetOpen(){
+  const scrims = $$(".scrim");
+  if (!scrims.length) return;
+  const apply = () => {
+    const open = scrims.some(x => x.classList.contains("on"));
+    document.body.style.overflow = open ? "hidden" : "";
+  };
+  scrims.forEach(x => new MutationObserver(apply)
+    .observe(x, { attributes: true, attributeFilter: ["class"] }));
 }
 
 function renderNwStats(){
@@ -2749,6 +2946,8 @@ renderHoldings();
 $("#vContrib").textContent = usd(P.contrib);
 $("#vReturn").textContent  = pct(P.ret*100);
 goalNote();
+lockScrollWhileSheetOpen();
+wireScrollFades();
 $("#vGoal").textContent    = short(P.goal);
 drawProj(true);
 renderPromoClocks();
