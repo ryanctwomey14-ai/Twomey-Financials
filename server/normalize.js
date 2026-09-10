@@ -521,7 +521,7 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
   }));
   const thru = day / daysInMonth;
 
-  /* The shipped budget targets belong to a demo persona, so pace and leak maths
+  /* The shipped budget targets belong to a demo persona, so overspend and leak maths
    * would be wrong for a real user until they are replaced. Derive a suggestion
    * from the last three complete months of their own spending. */
   const suggestedBudget = (() => {
@@ -574,12 +574,18 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
         why: `Active ${String(s.frequency || "monthly").toLowerCase()} charge since ${s.first_date}. Bank data cannot see usage — confirm you still want it.` });
     }
   }
+  /* A category that has genuinely passed its target for the month. This used to
+   * project the month's close from the fraction elapsed, which assumed the whole
+   * month was tracked and that spending arrives evenly. Neither holds: a single
+   * annual insurance premium, paid in full on day 10, was reported as running at
+   * 301% of pace and projected to triple its budget. Only real overspending is
+   * flagged now, and the amount is what was actually overspent. */
   for (const b of budget) {
     if (b.fixed || !b.t) continue;
-    const ratio = b.a / (b.t * thru);
-    if (ratio > 1.5) {
-      leaks.push({ id: "pace:" + b.n, n: b.n, kind: "pace", cancel: false, m: Math.max(0, b.a / thru - b.t),
-        why: `Running ${Math.round(ratio * 100)}% of pace. Projects to $${Math.round(b.a / thru)} against a $${b.t} budget.` });
+    const over = b.a - b.t;
+    if (over >= 0.5) {
+      leaks.push({ id: "over:" + b.n, n: b.n, kind: "over", cancel: false, m: over,
+        why: `Past its monthly target — $${Math.round(b.a)} spent against a $${Math.round(b.t)} budget.` });
     }
   }
   leaks.sort((a, b) => b.m - a.m);

@@ -399,8 +399,6 @@ td.n,th.n{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nu
 .track i.ok{background:linear-gradient(90deg,var(--em-dim),var(--em))}
 .track i.warn{background:linear-gradient(90deg,#8E7434,var(--gold))}
 .track i.over{background:linear-gradient(90deg,var(--rose-dim),var(--rose))}
-.pace{position:absolute;top:-3.5px;bottom:-3.5px;width:1.5px;background:var(--t0);opacity:.7;border-radius:2px}
-.pace::after{content:"";position:absolute;top:-3px;left:-2px;width:5.5px;height:5.5px;border-radius:50%;background:var(--t0)}
 
 /* ================= PROMO CLOCK ================= */
 .promo{display:flex;flex-direction:column;gap:12px;padding:13px;border-radius:12px;
@@ -806,7 +804,7 @@ details[open] summary::before{content:"\2212 "}
     <div class="ch">
       <div><h3>Budget versus actual</h3><p class="sub" id="budgetSub">Day 8 of 30</p></div>
       <div class="ch-sp"></div>
-      <span class="chip" id="budgetThru"><svg><use href="#i-clock"/></svg>&mdash;</span>
+
       <button class="btn sm" id="budgetEdit">Edit</button>
     </div>
     <div id="budgetList"></div>
@@ -1421,15 +1419,15 @@ let BUDGET = [
   {n:"Travel",t:600,a:0},
   {n:"Everything else",t:300,a:71}
 ];
-let DAY = 8, DAYS_IN_MONTH = 30, THRU = DAY/DAYS_IN_MONTH;
+let DAY = 8, DAYS_IN_MONTH = 30;
 
 let LEAKS = [
   {n:"Adobe Creative Cloud",why:"No app launch in 94 days. Charged 11 months running.",m:54.99,kind:"dead",cancel:true},
   {n:"Peloton All-Access",why:"3 rides in 90 days \u2014 $14.67 a ride at the current fee.",m:44.00,kind:"dead",cancel:true},
   {n:"SiriusXM",why:"Intro rate lapsed in June. $5.99 \u2192 $22.99 with no notice.",m:22.99,kind:"creep",cancel:true},
   {n:"Dropbox Plus",why:"Duplicates iCloud 2TB. 3% of the quota in use.",m:11.99,kind:"dupe",cancel:true},
-  {n:"Dining & delivery",why:"Running 292% of pace. 11 charges in 8 days.",m:770,kind:"pace",cancel:false},
-  {n:"Shopping",why:"3-month average up 38% against the trailing year.",m:505,kind:"pace",cancel:false}
+  {n:"Dining & delivery",why:"11 charges in 8 days, up 38% on the trailing quarter.",m:770,kind:"trend",cancel:false},
+  {n:"Shopping",why:"3-month average up 38% against the trailing year.",m:505,kind:"trend",cancel:false}
 ];
 
 let TXNS = [
@@ -1682,46 +1680,55 @@ $("#acctTabs").addEventListener("click", e => {
 /* ================= BUDGET ================= */
 function renderBudget(){
   const sub = $("#budgetSub"), thru = $("#budgetThru"), btn = $("#budgetEdit");
-  if (sub)  sub.textContent = `Day ${DAY} of ${DAYS_IN_MONTH} \u2014 the marker is where a category should be if spending were even`;
-  if (thru) thru.innerHTML = `<svg><use href="#i-clock"/></svg>${(THRU*100).toFixed(1)}% through`;
+  if (sub)  sub.textContent = `Spent so far this month against each target \u2014 day ${DAY} of ${DAYS_IN_MONTH}`;
+  if (thru) thru.remove();
   if (btn)  { btn.textContent = BUDGET_EDIT ? "Done" : "Edit"; btn.classList.toggle("gold", BUDGET_EDIT); }
 
   if (BUDGET_EDIT) renderBudgetEditor();
   else if (!BUDGET.length) $("#budgetList").innerHTML = `<p class="empty">
-      No budget lines yet. Without targets there is nothing to measure pace against, so the leak
+      No budget lines yet. Without targets there is nothing to measure spending against, so the leak
       detector can only report recurring charges &mdash; not overspending.</p>
     ${LIVE ? `<div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px">
       <button class="btn sm gold" id="budgetFromAvg"><svg><use href="#i-zap"/></svg>Use my averages</button>
       <button class="btn sm" id="budgetAddFirst"><svg><use href="#i-plus"/></svg>Add lines by hand</button></div>` : ""}`;
   else $("#budgetList").innerHTML = BUDGET.map(b => {
+    /* Measured against the target itself. The old reading divided spend by the
+       fraction of the month elapsed, which assumes the whole month was tracked
+       and that spending arrives evenly -- neither holds. A single annual
+       insurance premium read as 301% of pace on the day it landed. */
     const ratio = b.t ? b.a/b.t : 0;
-    const paceRatio = b.fixed ? ratio : (b.t ? b.a/(b.t*THRU) : 0);
-    const cls = b.fixed ? (ratio>1?"over":"ok") : paceRatio>1.5 ? "over" : paceRatio>1.05 ? "warn" : "ok";
+    /* Half a dollar of tolerance. A line sitting exactly on its target drifts a
+       fraction past it in floating point, which otherwise renders the absurd
+       "$0 over" and counts the line as a breach. */
+    const overBy = b.a - b.t;
+    const isOver = b.t > 0 && overBy >= 0.5;
+    const cls = isOver ? "over" : ratio > 0.9 ? "warn" : "ok";
     return `<div class="bud">
       <div class="bud-top">
         <b>${b.n}</b>
         ${b.fixed?'<span class="chip" style="font-size:9px;padding:2px 6px">fixed</span>':""}
-        ${!b.fixed && paceRatio>1.5?`<span class="chip rose" style="font-size:9px;padding:2px 6px">${Math.round(paceRatio*100)}% of pace</span>`:""}
+        ${isOver?`<span class="chip rose" style="font-size:9px;padding:2px 6px">${usd(Math.round(overBy))} over</span>`:""}
         <span class="bud-n">${usd(b.a)} <u>/ ${usd(b.t)}</u></span>
       </div>
       <div class="track">
         <i class="${cls}" style="width:${Math.min(100, ratio*100)}%"></i>
-        ${b.fixed?"":`<span class="pace" style="left:${(THRU*100).toFixed(1)}%"></span>`}
       </div>
     </div>`;
   }).join("");
 
   if (!BUDGET.length){ $("#budgetStats").innerHTML = ""; return; }
+  /* Only what has actually happened. Projecting a month's close from a part of
+     it was the same extrapolation as the pace bar, and wrong for the same
+     reason -- so "projected close" and "at risk of quota" go with it. */
   const spent  = BUDGET.reduce((s,b)=>s+b.a,0);
   const target = BUDGET.reduce((s,b)=>s+b.t,0);
-  const proj   = BUDGET.reduce((s,b)=> s + (b.fixed ? b.t : (THRU ? b.a/THRU : 0)), 0);
-  const over   = proj - target;
-  const hot    = BUDGET.filter(b=>!b.fixed && b.t && b.a/(b.t*THRU) > 1.5);
+  const left   = target - spent;
+  const overs  = BUDGET.filter(b => b.t && b.a - b.t >= 0.5);
+  const overBy = overs.reduce((s,b)=>s+(b.a-b.t),0);
   $("#budgetStats").innerHTML = `
-    <div class="stat"><span class="lbl">Spent MTD</span><b data-money="1">${usd(spent)}</b><span>of ${usd(target)} budgeted</span></div>
-    <div class="stat"><span class="lbl">Projected close</span><b class="${over>0?"loss":"gain"}" data-money="1">${usd(Math.round(proj))}</b><span>${over>0?usd(Math.round(over))+" over":usd(Math.round(-over))+" under"} at current pace</span></div>
-    <div class="stat"><span class="lbl">Over pace</span><b class="loss">${hot.length}</b><span>${hot.map(h=>h.n.split(" ")[0]).join(", ")||"None"}</span></div>
-    <div class="stat"><span class="lbl">At risk of quota</span><b class="goldt" data-money="1">${usd(Math.round(Math.max(0,over)))}</b><span>Comes out of investing, not income</span></div>`;
+    <div class="stat"><span class="lbl">Spent this month</span><b data-money="1">${usd(spent)}</b><span>of ${usd(target)} budgeted</span></div>
+    <div class="stat"><span class="lbl">Left in targets</span><b class="${left<0?"loss":"gain"}" data-money="1">${usd(Math.round(left))}</b><span>${left<0?"already past the total":"across every line"}</span></div>
+    <div class="stat"><span class="lbl">Over target</span><b class="${overs.length?"loss":"gain"}">${overs.length}</b><span>${overs.length?overs.map(h=>h.n.split(" ")[0]).join(", ")+" \u00b7 "+usd(Math.round(overBy))+" over":"None"}</span></div>`;
 }
 
 function renderBudgetEditor(){
@@ -1816,7 +1823,7 @@ function renderQuickActions(S){
     sub:`${usd(inv)} of ${usd(tgt)} moved so far` });
 
   if (!S.budgetCustomised && S.suggestedBudget?.basedOn) out.push({ act:"none", icon:"i-target", cls:"gold",
-    title:"Set your budget targets", sub:"Pace alerts need them to mean anything" });
+    title:"Set your budget targets", sub:"Overspending cannot be spotted without them" });
 
   out.push({ act:"link", icon:"i-link", cls:"", title:"Link another institution", sub:"Read-only via Plaid" });
 
@@ -2361,7 +2368,8 @@ function renderLeaks(r){
   }
 
   $("#leakBody").innerHTML = LEAKS.map(l => {
-    const kindChip = l.kind==="pace" ? '<span class="chip rose" style="font-size:9px;padding:2px 6px">pace</span>'
+    const kindChip = l.kind==="over" ? '<span class="chip rose" style="font-size:9px;padding:2px 6px">over budget</span>'
+      : l.kind==="trend" ? '<span class="chip rose" style="font-size:9px;padding:2px 6px">trend</span>'
       : l.kind==="dupe" ? '<span class="chip" style="font-size:9px;padding:2px 6px">duplicate</span>'
       : l.kind==="creep" ? '<span class="chip gold" style="font-size:9px;padding:2px 6px">price creep</span>'
       : '<span class="chip gold" style="font-size:9px;padding:2px 6px">unused</span>';
@@ -2819,7 +2827,7 @@ function applyState(S){
   HOME_EQUITY = S.homeEquity || 0;
   TRACK_FROM  = S.trackFrom || null;
   TRACKING_DAYS = S.trackingDays;
-  DAY = S.day; DAYS_IN_MONTH = S.daysInMonth; THRU = S.thru;
+  DAY = S.day; DAYS_IN_MONTH = S.daysInMonth;
   START = new Date(S.asOf);
   DAILY = (S.anchors || []).map(a => ({ d: new Date(a.date + "T00:00:00"), v: a.v }));
 

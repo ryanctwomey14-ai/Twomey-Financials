@@ -173,13 +173,17 @@ function recommend({ S, spentTotal, spentPrior, categories, now }) {
     });
   }
 
-  /* 3. categories running past their weekly share of the monthly target */
+  /* 3. categories running past their weekly share of the monthly target.
+   * Unrelated to the elapsed-month "pace" that was removed from the dashboard:
+   * this compares a finished week against a week's worth of target, with no
+   * extrapolation from a part-month. The word is avoided anyway, because using
+   * it for two different things is how the wrong one gets trusted. */
   const over = categories.filter(c => c.weeklyTarget && c.spent > c.weeklyTarget * 1.25);
   if (over.length) {
     const excess = over.reduce((s, c) => s + (c.spent - c.weeklyTarget), 0);
     out.push({
       tone: "watch",
-      head: over.length + " categor" + (over.length === 1 ? "y" : "ies") + " ahead of pace",
+      head: over.length + " categor" + (over.length === 1 ? "y" : "ies") + " over a week's share",
       body: over.slice(0, 3).map(c => c.name).join(", ") +
             " \u2014 " + money(excess * 4.33) + " over budget if the month holds."
     });
