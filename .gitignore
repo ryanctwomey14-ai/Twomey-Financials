@@ -12,3 +12,8 @@ Thumbs.db
 server/console.log
 server/console.log.err
 server/console.log.old
+
+# Tunnel output and the current ephemeral URL — machine-local, changes constantly.
+server/tunnel.log
+server/tunnel.log.out
+current-url.txt
