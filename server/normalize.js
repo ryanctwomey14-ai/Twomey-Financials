@@ -22,13 +22,19 @@ const DETAILED = {
   FOOD_AND_DRINK_VENDING_MACHINES: "Dining & delivery",
   FOOD_AND_DRINK_BEER_WINE_AND_LIQUOR: "Groceries"
 };
+/* Categories the user asked for that Plaid cannot detect. They are offered in
+ * every category picker and can carry a budget line like any other; they simply
+ * never get assigned automatically. "Date night" is a judgement about an
+ * evening rather than a property of a merchant, so no feed could infer it. */
+const USER_CATEGORIES = ["Fun", "Date night", "Dining out"];
+
 const PRIMARY = {
   INCOME: "Income",
   TRANSFER_IN: "Transfer",
   TRANSFER_OUT: "Transfer",
   LOAN_PAYMENTS: "Debt payment",
   BANK_FEES: "Everything else",
-  ENTERTAINMENT: "Everything else",
+  ENTERTAINMENT: "Fun",
   FOOD_AND_DRINK: "Dining & delivery",
   GENERAL_MERCHANDISE: "Shopping",
   HOME_IMPROVEMENT: "Housing",
@@ -592,7 +598,21 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
 
   /* --- net worth history --- */
   const snapshots = store.snapshots || [];
-  const anchors = snapshots.map(p => ({ date: p.date, v: p.net }));
+  /* The first snapshot after linking is taken while accounts are still
+   * arriving, so it records a fraction of the real total. It is not a smaller
+   * net worth, it is an incomplete one, and leaving it in makes the opening
+   * day look like a 840% gain.
+   *
+   * Only the leading run is trimmed, and only where the next day more than
+   * doubles it. A real net worth does not double overnight; an account list
+   * finishing loading does. Later volatility is left entirely alone. */
+  const usableSnapshots = (() => {
+    const rows = snapshots.slice();
+    let i = 0;
+    while (i + 1 < rows.length && Math.abs(rows[i + 1].net) > Math.abs(rows[i].net) * 2) i++;
+    return rows.slice(i);
+  })();
+  const anchors = usableSnapshots.map(p => ({ date: p.date, v: p.net }));
 
   /* --- health --- */
   const monthlyBurn = budget.reduce((s, b) => s + b.t, 0) || 1;
@@ -632,7 +652,8 @@ export function buildState({ items, accounts, transactions, liabilities, recurri
     hiddenTxns: (settings.hiddenTxns || []).length,
     hiddenAccounts: hiddenList,
     budget,
-    knownCategories: [...new Set([...Object.values(DETAILED), ...Object.values(PRIMARY), "Subscriptions"])]
+    knownCategories: [...new Set([...Object.values(DETAILED), ...Object.values(PRIMARY),
+                                 "Subscriptions", ...USER_CATEGORIES])]
       .filter(c => !NON_BUDGET.has(c)).sort(),
     suggestedBudget,
     budgetCustomised: Boolean(store.budgetCustomised),

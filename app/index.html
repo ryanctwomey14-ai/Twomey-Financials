@@ -2862,9 +2862,17 @@ function applyState(S){
     mv0.textContent = rate != null ? pct(rate) : "\u2014";
     mv0.className = "mv" + (rate != null && rate >= 20 ? " gain" : "");
     M[0].querySelector(".bar i").style.width = rate != null ? Math.min(100, Math.max(0, rate / 35 * 100)) + "%" : "0%";
-    M[0].querySelector(".mt").textContent = rate != null
-      ? `Month to date, against ${usd(income)} of income in`
-      : "Needs a full month of income before this is meaningful";
+    /* The sentence used to end on "of income in" -- unfinished. Worse, the rate
+       was presented as fact while only a few days of the month were tracked: a
+       paycheck in and little spent yet reads as saving 84% of income. Say which
+       window it covers, and mark it provisional until the month is whole. */
+    const tracked = S.trackingDays;
+    const partial = tracked != null && tracked < S.day;
+    M[0].querySelector(".mt").textContent = rate == null
+      ? "Needs income recorded before this means anything"
+      : partial
+        ? `Provisional \u2014 ${tracked} day${tracked === 1 ? "" : "s"} of this month tracked, ${usd(income)} of income`
+        : `Month to date, against ${usd(income)} of income`;
 
     M[1].querySelector(".mv").textContent = S.metrics.runwayMonths + " mo";
     M[1].querySelector(".bar i").style.width = Math.min(100, S.metrics.runwayMonths / (st.emergencyMonths || 6) * 100) + "%";
